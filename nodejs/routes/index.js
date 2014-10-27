@@ -1,13 +1,23 @@
 var mongodb = require('../data/mongodb');
-var analysis = require('../data/analysis');
-var analysisSchema = analysis.Analysis;
+var report = require('../data/report');
+var reportSchema = report.Report;
 
 exports.index = function(req, res) {
+	console.log('user/index: ' + req.session.user);
 	var hashid = req.url.substr(1);
-	analysisSchema.findOne({
+	if (hashid === '') {
+		res.render('index.ejs', {
+			currPage : 'editor',
+			hasHashKey : false,
+			host : req.protocol + '://' + req.get('host'),
+			userEmail : req.session.user ? req.session.user.email : null,
+			username : req.session.user ? req.session.user.username : null
+		});
+		return;
+	}
+	reportSchema.findOne({
 		hashid : hashid
 	}, function(err, doc) {
-		console.log(doc);
 		if (err)
 			throw err;
 		if (doc === null) {
@@ -20,12 +30,17 @@ exports.index = function(req, res) {
 				};
 			if (doc.queryParam.filters == null)
 				doc.queryParam.filters = {};
-			res.render('index', {
+			res.render('index.ejs', {
+				currPage : 'editor',
+				hasHashKey : true,
+				host : req.protocol + '://' + req.get('host'),
 				hashid : doc.hashid,
 				qubeInfo : JSON.stringify(doc.qubeInfo),
 				queryParam : JSON.stringify(doc.queryParam),
 				rptMode : doc.rptMode,
-				chartMode : doc.chartMode
+				chartMode : doc.chartMode,
+				userEmail : req.session.user ? req.session.user.email : null,
+				username : req.session.user ? req.session.user.username : null
 			});
 		}
 	});

@@ -12,10 +12,6 @@ Ext.define('Datanium.view.LeftPanel', {
 				border : false
 			},
 			items : [ {
-				xtype : 'searchcombo',
-				itemId : Datanium.util.CommonUtils.genItemId('searchcombo'),
-				flex : 0
-			}, {
 				xtype : 'accordion',
 				flex : 1
 			} ]

@@ -1,12 +1,12 @@
 var mongodb = require('../data/mongodb');
 var indicator = require('../data/indicator');
 var dataset = require('../data/dataset');
-var analysis = require('../data/analysis');
+var report = require('../data/report');
 var async = require('../lib/async');
 var hashids = require('../lib/hashids');
 var IndicatorSchema = indicator.Indicator;
 var datasetSchema = dataset.Dataset;
-var analysisSchema = analysis.Analysis;
+var reportSchema = report.Report;
 
 exports.topicSearch = function(req, res) {
 	var resultJSON = [];
@@ -36,13 +36,13 @@ exports.topicSearch = function(req, res) {
 				return;
 			var topicArray = item.topic.split(':');
 			var mainTopicStr = topicArray[0].trim();
-			if(mainTopicStr == '')
+			if (mainTopicStr == '')
 				return;
 			// var subTopicStr = topicArray[topicArray.length - 1].trim();
 			var indicatorTextStr = item.indicator_text.trim();
 			var indicatorKeyStr = item.indicator_key.trim();
-			 //console.log(mainTopicStr);
-			 //console.log(indicatorTextStr);
+			// console.log(mainTopicStr);
+			// console.log(indicatorTextStr);
 			if (index == 0) {
 				mainTopic = mainTopicStr;
 				indicatorText.push(indicatorTextStr);
@@ -62,7 +62,7 @@ exports.topicSearch = function(req, res) {
 				indicatorKey = [];
 				indicatorText.push(indicatorTextStr);
 				indicatorKey.push(indicatorKeyStr);
-				
+
 			}
 			// resultJSON.push(item.topic);
 		});
@@ -105,7 +105,7 @@ exports.querySplit = function(req, res) {
 			function(callback) {
 				// query for grid
 				datasetSchema.aggregate().match(matchObj).group(groupObj).project(groupObjProject).sort(sortStr).limit(
-						500).exec(function(err, doc) {
+						1000).exec(function(err, doc) {
 					if (err)
 						throw err;
 					resultJSON.grid.result = doc;
@@ -116,7 +116,7 @@ exports.querySplit = function(req, res) {
 			function(callback) {
 				// query for chart
 				datasetSchema.aggregate().match(matchObj).group(groupObj4Chart).project(groupObj4ChartProject).sort(
-						sortStr4Chart).limit(500).exec(function(err, doc) {
+						sortStr4Chart).limit(1000).exec(function(err, doc) {
 					if (err)
 						throw err;
 					// console.log(doc);
@@ -241,7 +241,7 @@ exports.queryResult = function(req, res) {
 			function(callback) {
 				// query for grid
 				datasetSchema.aggregate().match(matchObj).group(groupObj).project(groupObjProject).sort(sortStr).limit(
-						500).exec(function(err, doc) {
+						1000).exec(function(err, doc) {
 					if (err)
 						console.log('Exception: ' + err);
 					resultJSON.grid.result = convertResult(doc, false);
@@ -252,7 +252,7 @@ exports.queryResult = function(req, res) {
 			function(callback) {
 				// query for chart
 				datasetSchema.aggregate().match(matchObj).group(groupObj4Chart).project(groupObjProject).sort(sortStr)
-						.limit(500).exec(function(err, doc) {
+						.limit(1000).exec(function(err, doc) {
 							if (err)
 								console.log('Exception: ' + err);
 							resultJSON.chart.result = convertResult(doc, true);
@@ -320,14 +320,16 @@ function generateGroupObj(queryParam, isChart) {
 		}
 	});
 	var res = "{" + idStr + indicatorStr + "}";
+	console.log(res);
 	var returnObj = eval("(" + res + ")");
 	projectStr += "_id:0}";
 	// console.log(projectStr);
 	var projectObj = eval("(" + projectStr + ")");
+	var sortStr = generateSortStr(dimensions);
 	returnJSON = {
 		"returnObj" : returnObj,
 		"returnProject" : projectObj,
-		"returnSort" : generateSortStr(measures)
+		"returnSort" : sortStr
 	}
 	return returnJSON;
 }
@@ -338,15 +340,29 @@ function generateMatchObj(queryParam) {
 	var filterArray = [];
 	dimensions.forEach(function(item, index) {
 		if (item.uniqueName in filters) {
-			var array = eval('filters.' + item.uniqueName);
-			if (array != null && array.length > 0) {
-				var str = '';
-				if (item.uniqueName == 'year') {
-					str = array.join(",");
-				} else {
-					str = "'" + array.join("','") + "'";
+			if (item.uniqueName == 'year' || item.uniqueName == 'month') {
+				var timeObj = eval('filters.' + item.uniqueName);
+				var time_start = timeObj.time_start;
+				var time_end = timeObj.time_end;
+				time_start = time_start == '' ? null : time_start;
+				time_end = time_end == '' ? null : time_end;
+				if (time_start != null && time_end != null)
+					filterArray.push(item.uniqueName + ': {$gte : ' + time_start + ', $lte : ' + time_end + '}');
+				else if (time_start != null)
+					filterArray.push(item.uniqueName + ': {$gte : ' + time_start + '}');
+				else if (time_end != null)
+					filterArray.push(item.uniqueName + ': {$lte : ' + time_end + '}');
+			} else {
+				var array = eval('filters.' + item.uniqueName);
+				if (array != null && array.length > 0) {
+					var str = '';
+					if (item.uniqueName == 'year') {
+						str = array.join(",");
+					} else {
+						str = "'" + array.join("','") + "'";
+					}
+					filterArray.push(item.uniqueName + ': {$in:[' + str + ']}');
 				}
-				filterArray.push(item.uniqueName + ': {$in:[' + str + ']}');
 			}
 		}
 	});
@@ -356,10 +372,20 @@ function generateMatchObj(queryParam) {
 	return returnObj;
 }
 
-function generateSortStr(measures) {
+function generateSortStr(dimensons) {
 	var sortStr = 'field -';
-	if (measures != null && measures.length > 0) {
-		sortStr += measures[0].uniqueName;
+	var timeFlag = false;
+	if (dimensons != null && dimensons.length > 0) {
+		dimensons.forEach(function(item, index) {
+			if (item.uniqueName == 'year' || item.uniqueName == 'month') {
+				sortStr += item.uniqueName;
+				timeFlag = true;
+				return;
+			}
+		});
+		if (!timeFlag) {
+			sortStr += dimensons[0].uniqueName;
+		}
 		return sortStr;
 	} else {
 		return null;
@@ -404,7 +430,7 @@ function bubbleSort(a, par) {
 }
 
 function convertSplitValue(str) {
-	var returnStr = str.trim().replace(/ |-|&|\(|\)|\,|\.|\'/g, '');
+	var returnStr = str.trim().replace(/ |-|&|\(|\)|\,|\.|\'|\uFF08|\uFF09/g, '');
 	return returnStr;
 }
 
@@ -446,40 +472,6 @@ exports.indicatorMapping = function(req, res) {
 	});
 }
 
-exports.indicatorSearch = function(req, res) {
-	var query = require('url').parse(req.url, true).query;
-	var indicatorResultJSON = {};
-	if (query.query != null) {
-		var key = query.query.toLowerCase();
-		var results = [];
-		IndicatorSchema.find({
-			indicator_text : {
-				$regex : key,
-				$options : 'i'
-			}
-		}, function(err, doc) {
-			if (err)
-				console.log('Exception: ' + err);
-			doc.forEach(function(item, index) {
-				var tempJson = {
-					"uniqueName" : item.indicator_key,
-					"text" : item.indicator_text + ' - ' + item.data_source
-				};
-				results.push(tempJson);
-			});
-			indicatorResultJSON = {
-				"indicators" : results
-			};
-			res.send(indicatorResultJSON);
-		});
-	} else {
-		indicatorResultJSON = {
-			"indicators" : []
-		};
-		res.send(indicatorResultJSON);
-	}
-};
-
 exports.dimensionValueSearch = function(req, res) {
 	var query = require('url').parse(req.url, true).query;
 	var dimensionValueResultJSON = {};
@@ -517,53 +509,69 @@ exports.dimensionValueSearch = function(req, res) {
 }
 
 exports.save = function(req, res) {
-	var analysisObj = req.body;
+	var userEmail = 'anonymous user';
+	if (req.session.user != null)
+		userEmail = req.session.user.email;
+	var reportObj = req.body;
 	var userip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 	var hashid = null;
+	var status = 'success';
 	var date = new Date();
 	async.parallel([ function(callback) {
-		if (analysisObj.hashid !== null && analysisObj.hashid !== '') {
-			console.log('Update Analysis ' + analysisObj.hashid);
+		if (reportObj.hashid !== null && reportObj.hashid !== '') {
+			console.log('Update Report ' + reportObj.hashid);
 			// update analysis
-			analysisSchema.findOneAndUpdate({
-				hashid : analysisObj.hashid
-			}, {
-				qubeInfo : analysisObj.qubeInfo,
-				queryParam : analysisObj.queryParam,
-				rptMode : analysisObj.rptMode,
-				chartMode : analysisObj.chartMode,
-				user_ip : userip,
-				modification_date : date
-			}, function(err, doc) {
+			reportSchema.findOne({
+				hashid : reportObj.hashid
+			}, function(err, rpt) {
 				if (err)
 					throw err;
-				hashid = doc.hashid;
-				callback();
-			})
+				hashid = rpt.hashid;
+				if (rpt.user_id == userEmail) {
+					reportSchema.update({
+						hashid : reportObj.hashid
+					}, {
+						qubeInfo : reportObj.qubeInfo,
+						queryParam : reportObj.queryParam,
+						rptMode : reportObj.rptMode,
+						chartMode : reportObj.chartMode,
+						user_ip : userip,
+						modification_date : date
+					}, function(err, doc) {
+						if (err)
+							throw err;
+						callback();
+					});
+				} else {
+					status = 'userid_not_match';
+					callback();
+				}
+			});
 		} else {
-			console.log('Save New Analysis');
+			console.log('Save New Report');
 			// encrypt hashid
 			var key = date.getTime() * 10 + Math.round(Math.random() * 10);
 			var hashs = new hashids("datanium salt", 4);
 			hashid = hashs.encrypt(key);
-			// save analysis
-			var newAnalysis = new analysisSchema({
+			// save report
+			var newReport = new reportSchema({
 				hashid : hashid,
-				qubeInfo : analysisObj.qubeInfo,
-				queryParam : analysisObj.queryParam,
-				rptMode : analysisObj.rptMode,
-				chartMode : analysisObj.chartMode,
-				user_id : 'anonymous user',
+				qubeInfo : reportObj.qubeInfo,
+				queryParam : reportObj.queryParam,
+				rptMode : reportObj.rptMode,
+				chartMode : reportObj.chartMode,
+				user_id : userEmail,
 				user_ip : userip,
 				creation_date : date,
 				modification_date : date
 			});
-			newAnalysis.save();
+			newReport.save();
 			callback();
 		}
 	} ], function() {
 		res.send({
-			hashid : hashid
+			hashid : hashid,
+			status : status
 		});
 	});
 }

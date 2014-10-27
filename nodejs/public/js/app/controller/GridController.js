@@ -21,7 +21,7 @@ Ext.define('Datanium.controller.GridController', {
 		if (Datanium.GlobalData.autoRun || (manualRun != null && manualRun)) {
 			var dataViewBox = Datanium.util.CommonUtils.getCmpInActiveTab('datapanel');
 			var mask = new Ext.LoadMask(dataViewBox, {
-				msg : "Loading..."
+				msg : Datanium.GlobalStatic.label_loading
 			});
 			Datanium.GlobalData.QueryResult = null;
 			if (this.isQueryValid()) {
@@ -51,6 +51,7 @@ Ext.define('Datanium.controller.GridController', {
 				this.cleanRpt();
 			}
 		}
+		Datanium.util.CommonUtils.checkEnableFilter();
 	},
 	cleanRpt : function() {
 		Datanium.util.CommonUtils.refreshAll();

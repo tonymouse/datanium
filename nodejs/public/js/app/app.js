@@ -36,13 +36,13 @@ Ext.application({
 			 * tabBar : { display : false, height : 25, defaults : { height : 25 } },
 			 * items : [ { itemId : 'report-tab' + Datanium.GlobalData.tabindex,
 			 * closable : true, // icon : 'img/icons/report.png', title : 'My
-			 * Analysis', xtype : 'reporttemplate' } ] } ],
+			 * Reports', xtype : 'reporttemplate' } ] } ],
 			 */
 			items : [ {
 				region : 'center',
 				id : 'mainBox',
 				header : false,
-				title : 'My Analysis',
+				title : 'My Reports',
 				xtype : 'reporttemplate'
 			} ]
 		});
@@ -50,7 +50,6 @@ Ext.application({
 			Ext.getCmp("appPanel").setHeight(Ext.get("appContainer").getHeight());
 			Ext.getCmp("appPanel").doLayout();
 		});
-
 		// call report generate when existed report is loaded
 		if (Datanium.GlobalData.hashid != null && Datanium.GlobalData.hashid !== '') {
 			Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent('refreshElementPanel');
@@ -58,17 +57,16 @@ Ext.application({
 			Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent('selectionChange');
 			this.getController('ChartController').reloadFilterSwitchMenu();
 			if (Datanium.GlobalData.rptMode === 'grid') {
-				Ext.getCmp('gridViewBtn').toggle();
-				Datanium.util.CommonUtils.getCmpInActiveTab('datapanel').getLayout().setActiveItem(0);
+				Ext.getCmp('gridViewBtn').toggle(true);
 			}
 			if (Datanium.GlobalData.rptMode === 'chart') {
-				Ext.getCmp('chartViewBtn').toggle();
-				Datanium.util.CommonUtils.getCmpInActiveTab('datapanel').getLayout().setActiveItem(1);
+				Ext.getCmp('chartViewBtn').toggle(true);
 			}
 			if (Datanium.GlobalData.rptMode === 'analysis') {
-				Ext.getCmp('analysisViewBtn').toggle();
-				Datanium.util.CommonUtils.getCmpInActiveTab('datapanel').getLayout().setActiveItem(2);
+				Ext.getCmp('analysisViewBtn').toggle(true);
 			}
+		} else {
+			this.getController('GridController').generateRpt();
 		}
 	}
 });

@@ -37,7 +37,7 @@ function mergeFields(fields) {
 	return fields;
 }
 
-function generateSeries(yFields, yFieldsTxt, xFieldsLabel) {
+function generateSeries4Line(yFields, yFieldsTxt, xFieldsLabel) {
 	var series = [];
 	Ext.Array.each(yFields, function(yfld, index) {
 		var s = {
@@ -46,7 +46,7 @@ function generateSeries(yFields, yFieldsTxt, xFieldsLabel) {
 			highlight : true,
 			smooth : true,
 			showMarkers : false,
-			fill : true,
+			// fill : true,
 			xField : xFieldsLabel,
 			yField : yfld,
 			title : yFieldsTxt[index]
@@ -176,7 +176,7 @@ Ext.define('Datanium.view.charts.LineChart', {
 		// console.log(fields);
 		// console.log(xFields);
 		// console.log(xFieldsLabel);
-		this.series = generateSeries(yFields, yFieldsTxt, xFieldsLabel);
+		this.series = generateSeries4Line(yFields, yFieldsTxt, xFieldsLabel);
 		this.callParent();
 	}
 });

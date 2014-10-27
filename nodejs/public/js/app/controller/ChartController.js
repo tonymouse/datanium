@@ -10,7 +10,7 @@ Ext.define('Datanium.controller.ChartController', {
 				beforeshow : this.onChartPanelShow
 			},
 			'chart-toolbar > button[action=auto-scale]' : {
-				click : function(btn) {
+				toggle : function(btn) {
 					if (btn.pressed) {
 						Datanium.GlobalData.autoScale = true;
 					} else {
@@ -20,7 +20,7 @@ Ext.define('Datanium.controller.ChartController', {
 				}
 			},
 			'chart-toolbar > button[action=hide-legend]' : {
-				click : function(btn) {
+				toggle : function(btn) {
 					if (btn.pressed) {
 						Datanium.GlobalData.showLegend = false;
 					} else {
@@ -69,7 +69,7 @@ Ext.define('Datanium.controller.ChartController', {
 			// enable dimSwitch
 			dimSwitch.enable();
 		} else {
-			dimSwitch.setText('Primary Dimension');
+			dimSwitch.setText(Datanium.GlobalStatic.label_primary_dim);
 			dimSwitch.disable();
 		}
 	},
@@ -84,7 +84,7 @@ Ext.define('Datanium.controller.ChartController', {
 			filterSwitch.menu.removeAll();
 			for (f in filters) {
 				Ext.Array.each(dimensions, function(dim) {
-					if (f == dim.uniqueName) {
+					if (f == dim.uniqueName && !Datanium.util.CommonUtils.checkTimeDim(f)) {
 						var iconClsTxt = '';
 						if (primaryFilter == dim.uniqueName) {
 							filterSwitch.setText(dim.text);
@@ -113,7 +113,7 @@ Ext.define('Datanium.controller.ChartController', {
 			// enable filterSwitch
 			filterSwitch.enable();
 		} else {
-			filterSwitch.setText('Primary Filter');
+			filterSwitch.setText(Datanium.GlobalStatic.label_primary_filter);
 			filterSwitch.disable();
 		}
 	}

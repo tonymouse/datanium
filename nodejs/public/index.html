@@ -1,59 +1,62 @@
-<!DOCTYPE html>
-<html lang="en" class="no-js">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Datanium - Play with Data</title>
-<meta name="author" content="Datanium" />
-<link rel="shortcut icon" href="./img/favicon32.ico">
-<link rel="stylesheet" type="text/css" href="./css/normalize.css">
-<link rel="stylesheet" type="text/css" href="./css/demo.css" />
-<link rel="stylesheet" type="text/css" href="./css/component.css" />
-<link rel="stylesheet" href="./js/extjs/resources/css/ext-all-gray-debug.css">
-<link rel="stylesheet" href="./css/font-awesome/css/font-awesome.min.css">
-<link rel="stylesheet" type="text/css" href="./css/datanium.css">
-<link rel="stylesheet" type="text/css" href="./js/bootstrap/css/bootstrap.css">
-<script>
-	var console = console || {
-		"log" : function() {
-		}
-	};
-</script>
-<script type="text/javascript" src="./js/extjs/ext-all.js"></script>
-<script type="text/javascript" src="./js/app/util/CommonUtils.js"></script>
-<script type="text/javascript" src="./js/app/util/GlobalData.js"></script>
-<script type="text/javascript" src="./js/app/app.js"></script>
-<script type="text/javascript" src="./js/jquery/jquery-1.9.1.min.js"></script>
-<script type="text/javascript" src="./js/bootstrap/js/bootstrap.min.js"></script>
-
 </head>
 <body>
-	<div class="custom-container">
-		<ul id="gn-menu" class="gn-menu-main">
-			<li class="gn-trigger"><a class="gn-icon gn-icon-menu"><span>Menu</span></a>
-				<nav class="gn-menu-wrapper">
-					<div class="gn-scroller">
-						<ul class="gn-menu">
-							<li class="gn-search-item"><input placeholder="Search" type="search" class="gn-search"
-								id="gnsearch"> <a class="gn-icon gn-icon-search"><span>Search</span></a></li>
-							<li><a href="#" class="gn-icon gn-icon-article" data-toggle="modal"
-								onclick="showModal();">By Topic</a>
-							<li><a class="gn-icon gn-icon-earth" onclick="comingSoon();">By Country</a></li>
-							<li><a class="gn-icon gn-icon-archive" onclick="comingSoon();">By Data Source</a></li>
-							<li><a class="gn-icon gn-icon-help" onclick="comingSoon();">About Data</a></li>
-						</ul>
-					</div>
-					<!-- /gn-scroller -->
-				</nav></li>
-			<li><a href="#" onclick="save();"><span><i class="fa fa-pencil-square-o"></i>&nbsp;Save</span></a></li>
-			<li><a href="#" onclick="comingSoon();"><span><i class="fa fa-laptop"></i>&nbsp;Space</span></a></li>
-			<li><a href="#" onclick="comingSoon();"><span><i class="fa fa-comment-o"></i>&nbsp;Feedback</span></a></li>
-			<li><a href="#" onclick="about();"><span><i class="fa fa-smile-o"></i>&nbsp;About</span></a></li>
-
-			<li><a href="#" onclick="login();"><span><i class="fa fa-user"></i>&nbsp;Login/Sign
-						up</span></a></li>
-		</ul>
+	<div class="index-container">
+		<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+			<div class="container-fluid">
+				<!-- Brand and toggle get grouped for better mobile display -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+						data-target="#bs-example-navbar-collapse-1">
+						<span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span
+							class="icon-bar"></span> <span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="./"><img src="./img/favicon32.ico"></img></a>
+				</div>
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav">
+						<!--li class="active"><a href="#"><i class="fa fa-pencil-square-o"></i>&nbsp;Editor</a></li-->
+						<li><a href="#" onclick="save(false);"><i class="fa fa-save"></i>&nbsp;Save</a></li>
+						<li><a href="#" onclick="space();"><i class="fa fa-laptop"></i>&nbsp;Space</a></li>
+						<li><a href="#" class="dropdown-toggle" data-toggle="dropdown"><i
+								class="fa fa-search"></i>&nbsp;Data Explore</a>
+							<ul class="dropdown-menu" role="menu">
+								<li><a href="#" onclick="showModal();"><i class="fa fa-comments"></i>&nbsp;By Topic</a></li>
+								<li><a href="#" onclick="comingSoon();"><i class="fa fa-globe"></i>&nbsp;By Country</a></li>
+								<li><a href="#" onclick="comingSoon();"><i class="fa fa-database"></i>&nbsp;By Data
+										Source</a></li>
+							</ul></li>
+						<li><a href="#" class="dropdown-toggle" data-toggle="dropdown"><i
+								class="fa fa-smile-o"></i>&nbsp;About</a>
+							<ul class="dropdown-menu" role="menu">
+								<li><a href="#" onclick="about();"><i class="fa fa-users"></i>&nbsp;About us</a></li>
+								<li><a href="#" onclick="feedbackpop();"><i class="fa fa-comment-o"></i>&nbsp;Feedback</a></li>
+							</ul></li>
+					</ul>
+					<!-- form class="navbar-form navbar-left" role="search">
+						<div class="form-group">
+							<input type="text" class="form-control" placeholder="Search">
+						</div>
+						<button type="submit" class="btn btn-default">Submit</button>
+					</form -->
+					<ul class="nav navbar-nav navbar-right">
+						<li class="dropdown"><a id="userLink" href="#" onclick="loginpop();"><span><i
+									class="fa fa-user"></i><span id="userLabel">&nbsp;Login/Sign up</span></span></a>
+							<ul class="dropdown-menu" role="menu">
+								<li><a href="#" onclick="space();"><i class="fa fa-laptop"></i>&nbsp;Space</a></li>
+								<li><a href="#"><i class="fa fa-cog"></i>&nbsp;Settings</a></li>
+								<li class="divider"></li>
+								<li><a href="#"><i class="fa fa-power-off"></i>&nbsp;Sign out</a></li>
+							</ul></li>
+					</ul>
+				</div>
+				<!-- /.navbar-collapse -->
+			</div>
+			<!-- /.container-fluid -->
+		</nav>
 		<header>
 			<h1>
 				Datanium Prototype <span>An online public data analysis tool as seen on the <a
@@ -63,494 +66,19 @@
 		</header>
 		<div id="appContainer"></div>
 	</div>
-
-	<div class="modal fade" id="txtmodal" style="z-index: 1000000">
-		<div class="modal-dialog" id="txtmodaldialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h5 class="modal-title" id="txtmodaltitle"></h5>
-				</div>
-				<div class="modal-body">
-					<h4 id="txtmodalbody"></h4>
-					<div id="txtmodalhtmlbody"></div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="modal fade" id="ieversion" style="z-index: 1000000">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h5 class="modal-title">Browser Support</h5>
-				</div>
-				<div class="modal-body">
-					<h4>You are using an old version browser.</h4>
-					<span>This site has been developed and optimized for the following browsers:<br /></span> <span><a
-						href="http://www.google.com/intl/en-US/chrome/browser/" target="_blank">Google Chrome 3+</a><br /></span>
-					<span><a href="http://www.mozilla.com/en-US/firefox/" target="_blank">Mozilla
-							Firefox 4+</a><br /></span> <span><a
-						href="http://www.microsoft.com/en-us/download/internet-explorer.aspx" target="_blank">Internet
-							Explorer 9+</a><br /></span> <span><a href="http://www.apple.com/safari/download/"
-						target="_blank">Apple Safari 4+</a><br /></span> <span>If you are using an older version or
-						different browser that is having difficulty rendering this site, download and install the
-						latest version of your browser using the link above.</span>
-					<p></p>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="modal fade" id="loginModal" style="z-index: 1000000">
-		<div class="modal-dialog modal-sm">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">Login</h4>
-				</div>
-				<div class="modal-body">
-					<form class="form-horizontal" role="form">
-						<div class="form-group">
-							<div class="col-sm-offset-1 col-sm-10">
-								<input type="email" class="form-control" id="inputEmail" placeholder="Email">
-							</div>
-						</div>
-						<div class="form-group">
-							<div class="col-sm-offset-1 col-sm-10">
-								<input type="password" class="form-control" id="inputPassword" placeholder="Password">
-							</div>
-						</div>
-						<div class="col-sm-offset-1 col-sm-10">
-							<div class="login_foot">
-								<label> <a href="#" onclick="signup();">Sign up</a>
-								</label>
-							</div>
-						</div>
-					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary">Login</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="modal fade" id="signupModal" style="z-index: 1000000">
-		<div class="modal-dialog modal-sm">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">Sign up</h4>
-				</div>
-				<div class="modal-body">
-					<form class="form-horizontal" role="form">
-						<div class="form-group">
-							<div class="col-sm-offset-1 col-sm-10">
-							<label id="emailLabel" for="inputEmail2" style="display:none; color:red;"></label>
-								<input type="email" class="form-control" id="inputEmail2" placeholder="Email">
-							</div>
-						</div>
-						<div class="form-group">
-							<div class="col-sm-offset-1 col-sm-10">
-							<label id="usernameLabel" for="inputUsername2"  style="display:none; color:red;"></label>
-								<input type="text" class="form-control" id="inputUsername2" placeholder="Username">
-							</div>
-						</div>
-						<div class="form-group">
-							<div class="col-sm-offset-1 col-sm-10">
-							<label id="passwordLabel" for="inputPassword2" style="display:none; color:red;"></label>
-								<input type="password" class="form-control" id="inputPassword2" placeholder="Password">
-							</div>
-						</div>
-						<div class="form-group">
-							<div class="col-sm-offset-1 col-sm-10">
-							<label id="confirmLabel" for="inputConfirmPassword2" style="display:none; color:red;"></label>
-								<input type="password" class="form-control" id="inputConfirmPassword2"
-									placeholder="Confirm Password">
-							</div>
-						</div>
-						<div class="col-sm-offset-1 col-sm-10">
-							<div class="login_foot">
-								<label> <a href="#" onclick="login();">Login</a>
-								</label>
-							</div>
-						</div>
-					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" onclick="createAccount();" class="btn btn-primary">Create Account</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="modal fade" id="aboutModal" style="z-index: 1000000">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h5 class="modal-title">About Datanium</h5>
-				</div>
-				<div class="modal-body">
-
-					<div class="about_desc">
-						<div class="about_logo">
-							<img src="./img/favicon32.ico"></img>
-						</div>
-						<div>
-							<h5>Datanium - Version 0.1.334</h5>
-							<h5>A platform that help you find, present, share and play with data.</h5>
-						</div>
-					</div>
-					<div class="about_foot">
-						Fork us on <a href="https://github.com/datanium/datanium">Github</a> or Contact us directly -
-						<a href="mailto:admin@dtnium.com">dtnium@gmail.com</a>
-					</div>
-
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<script src="./js/classie.js"></script>
-	<script src="./js/gnmenu.js"></script>
 	<script>
 		$(document).ready(function() {
-			var ieVersion = getIEVersion();
-			if (ieVersion > 0 && ieVersion < 9)
-				window.setTimeout(ieVersionPop, 1000);
 			adjustScreenHeight();
 		});
 
-		new gnMenu(document.getElementById('gn-menu'));
-
 		function adjustScreenHeight() {
-			var heightOffset = 125;
+			var heightOffset = 114;
 			var appCon = document.getElementById('appContainer');
 			appCon.style.height = (window.innerHeight - heightOffset) + 'px';
 			window.onresize = function() {
 				appCon.style.height = (window.innerHeight - heightOffset) + 'px';
 			}
 		}
-
-		var createAccount = function(){
-			var validate = validateSignUp();
-			alert
-			if(validate!=true){
-				alert(1);
-				return;
-			}				
-			var link ='/userManagement/saveUser';
-			$.ajax({
-				url : link,
-				type : 'POST',
-				dataType : 'json',
-				data : {username : $('#inputUsername2').val(),
-						password : $('#inputPassword2').val(),
-						email : $('#inputEmail2').val()},
-				success: function(map){
-					if(map.status == 'success'){
-						alert(map.message);
-						$('#signupModal').modal('hide');
-					}
-					else{
-						if(map.status =='Email Exist'){
-							$('#emailLabel').text(map.message);
-							$('#emailLabel').show();
-						}else{
-							$('#emailLabel').hide();
-						}
-						if(map.status =='Username Exist'){
-							$('#usernameLabel').text(map.message);
-							$('#usernameLabel').show();
-						}else{
-							$('#usernameLabel').hide();
-						}
-						$('#inputPassword2').val('');
-						$('#inputConfirmPassword2').val('');
-					}
-					
-				},
-				error : function(){
-					
-				}
-			});
-		}
-		
-		var validateSignUp = function (){
-			var email = $('#inputEmail2').val();
-			var username = $('#inputUsername2').val();
-			var password = $('#inputPassword2').val();
-			var confirmPassword = $('#inputConfirmPassword2').val();
-			var count = 0;
-			if(email == null ||email == ''){
-				$('#emailLabel').text("This field is required.");
-				$('#emailLabel').show();
-				count++;
-			}else{
-				$('#emailLabel').hide();
-			}if(username == null ||username == ''){
-				$('#usernameLabel').text("This field is required.");
-				$('#usernameLabel').show();
-				count++;
-			}else{
-				$('#usernameLabel').hide();
-			}if(password == null ||password == ''){
-				$('#passwordLabel').text("This field is required.");
-				$('#passwordLabel').show();
-				count++;
-			}else{
-				$('#passwordLabel').hide();
-			}if(confirmPassword == null ||confirmPassword == ''){
-				$('#confirmLabel').text("This field is required.");
-				$('#confirmLabel').show();
-				count++;
-			}else{
-				$('#confirmLabel').hide();
-			}if(password!=null && password.length < 4){
-				$('#passwordLabel').text("Ensure this value has at least 4 characters (it has "+password.length+").");
-				$('#passwordLabel').show();
-			}
-			if(password!=null && password!='' && confirmPassword!= null 
-				&& confirmPassword!='' && password != confirmPassword){
-				$('#confirmLabel').text("The two password fields didn't match.");
-				$('#confirmLabel').show();
-				$('#inputPassword2').val('');
-				$('#inputConfirmPassword2').val('');
-				count++;
-			}
-			if(count!=0){
-				$('#inputPassword2').val('');
-				$('#inputConfirmPassword2').val('');
-				return false;
-			}
-			return true;
-		}
-		
-		var showModal = function() {
-			showTxtModal('Search Indicator by Topic', 'Processing...');
-			var link = '/rest/query/topicSearch';
-			$.ajax({
-				url : link,
-				type : 'get',
-				dataType : 'json',
-				success : function(map) {
-					var html = '';
-					if (map.length > 0) {
-						//alert(1);
-						html = '<div class="panel-group" id="accordion">';
-						$.each(map, function(index, item) {
-							html += createCollapse(index, item);
-							//html+='<p></p>';
-						});
-						html += '</div>';
-					}
-					updateTxtModal(null, '', html);
-					$('#txtmodal').find('.modal-body #accordion').find('div[id^="collapse"]').collapse('hide');
-					/*$('#myModal').find('.modal-body').html(html);
-					$('#myModal').find('.modal-body #accordion').find('div[id^="collapse"]').collapse('hide');
-					$('#myModal').modal('show');*/
-				},
-				error : function() {
-
-				}
-			});
-
-		}
-
-		function createCollapse(index, item) {
-			var topic = item.topic;
-			if (topic === '')
-				return '';
-			var indicator = item.indicatorText;
-			var indicatorKey = item.indicatorKey;
-			//alert(topic);
-			//alert(indicator.length);
-			var html = '';
-			html = '<div class="panel panel-default">';
-			html += '<div class="panel-heading">';
-			html += '<h4 class="panel-title">';
-			html += '<a data-toggle="collapse" data-parent="#accordion" href="#collapse'+index+'">';
-			html += topic;
-			html += '</a>';
-			html += '</h4>';
-			html += '</div>';
-			html += '<div id="collapse'+index+'" class="panel-collapse collapse in">';
-			html += '<div class="panel-body">';
-			if (indicator.length > 0) {
-				$.each(indicator, function(indicatorTextIndex, indicatorTextStr) {
-					var key = '';
-					$.each(indicatorKey, function(indicatorKeyIndex, indicatorKeyStr) {
-						if (indicatorTextIndex == indicatorKeyIndex) {
-							key = indicatorKeyStr;
-							return false;
-						} else {
-							return;
-						}
-					});
-					html += '<p><a href="#" onclick="addIndicator(\'' + key + '\');">';
-					html += indicatorTextStr;
-					html += '</a></p>';
-				});
-			}
-			html += '</div>';
-			html += '</div>';
-			html += '</div>';
-			return html;
-		}
-
-		var comingSoon = function() {
-			showTxtModal('&nbsp;', 'Coming Soon...', 'small');
-		}
-
-		var ieVersionPop = function() {
-			$('#ieversion').modal('show');
-		}
-
-		var getIEVersion = function() {
-			var ua = window.navigator.userAgent;
-			var ie = ua.indexOf("MSIE ");
-			return ((ie > 0) ? parseInt(ua.substring(ie + 5, ua.indexOf(".", ie))) : 0);
-		}
-
-		var saveSuccess = function() {
-			showTxtModal('&nbsp;', 'Save Successful.', 'small');
-		}
-
-		var about = function() {
-			$('#aboutModal').modal('show');
-		}
-
-		var login = function() {
-			$('#signupModal').modal('hide');
-			$('#loginModal').modal('show');
-		}
-
-		var signup = function() {
-			$('#loginModal').modal('hide');
-			$('#signupModal').modal('show');
-			clearValues();
-			clearLabels();
-		}
-
-		var clearValues = function(){
-			$('#inputEmail2').val('');
-			$('#inputUsername2').val('');
-			$('#inputPassword2').val('');
-			$('#inputConfirmPassword2').val('');
-		}
-		
-		var clearLabels = function(){
-			$('#emailLabel').hide();
-			$('#usernameLabel').hide();
-			$('#passwordLabel').hide();
-			$('#confirmLabel').hide();
-		}
-		
-		var showTxtModal = function(title, content, size, html) {
-			$('#txtmodaltitle').html('');
-			$('#txtmodalbody').html('');
-			$('#txtmodalhtmlbody').html('');
-			$('#txtmodaldialog').attr('class', 'modal-dialog');
-			if (size === 'small')
-				$('#txtmodaldialog').attr('class', 'modal-dialog modal-sm');
-			else if (size === 'large')
-				$('#txtmodaldialog').attr('class', 'modal-dialog modal-lg');
-			$('#txtmodaltitle').html(title);
-			$('#txtmodalbody').html(content);
-			$('#txtmodalhtmlbody').html(html);
-			$('#txtmodal').modal('show');
-		}
-
-		var updateTxtModal = function(title, content, html) {
-			if (title !== null)
-				$('#txtmodaltitle').html(title);
-			if (content !== null)
-				$('#txtmodalbody').html(content);
-			if (html !== null)
-				$('#txtmodalhtmlbody').html(html);
-		}
-
-		var save = function() {
-			var url = '/rest/save';
-			$.ajax({
-				type : 'POST',
-				url : url,
-				data : {
-					hashid : Datanium.GlobalData.hashid,
-					queryParam : Datanium.GlobalData.queryParam,
-					qubeInfo : Datanium.GlobalData.qubeInfo,
-					rptMode : Datanium.GlobalData.rptMode,
-					chartMode : Datanium.GlobalData.chartMode
-				},
-				success : function(data) {
-					if (Datanium.GlobalData.hashid === null || Datanium.GlobalData.hashid === '')
-						window.location.href = window.location.protocol + "//" + window.location.host + '/'
-								+ data.hashid;
-					else
-						saveSuccess();
-				},
-				error : function() {
-				},
-				dataType : 'json'
-			});
-		}
-
-		var addIndicator = function(key) {
-			Datanium.controller.Homepage.prototype.addIndicator(key);
-			$('#txtmodal').modal('hide');
-		}
-
-		$('#gnsearch').bind("enterKey", function(e) {
-			showTxtModal('Data Indicator Search', 'Processing...');
-			var searchKey = $('#gnsearch').val();
-			var url = '/rest/indicator/search';
-			$.ajax({
-				type : 'GET',
-				url : url,
-				data : {
-					query : searchKey
-				},
-				success : function(data) {
-					var html = '';
-					var indicators = data.indicators;
-					if (indicators != null) {
-						indicators.forEach(function(rec) {
-							html += '<p><a href="#" onclick="addIndicator(\'' + rec.uniqueName + '\');">';
-							html += rec.text;
-							html += '</a></p>';
-						});
-						updateTxtModal(null, '', html);
-					}
-				},
-				error : function() {
-				},
-				dataType : 'json'
-			});
-		});
-
-		$('#gnsearch').keyup(function(e) {
-			if (e.keyCode == 13) {
-				$(this).trigger("enterKey");
-			}
-		});
-	</script>
-	<script>
-		/* Google Analytics Tracking Code*/
-		(function(i, s, o, g, r, a, m) {
-			i['GoogleAnalyticsObject'] = r;
-			i[r] = i[r] || function() {
-				(i[r].q = i[r].q || []).push(arguments)
-			}, i[r].l = 1 * new Date();
-			a = s.createElement(o), m = s.getElementsByTagName(o)[0];
-			a.async = 1;
-			a.src = g;
-			m.parentNode.insertBefore(a, m)
-		})(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-		ga('create', 'UA-54110354-1', 'auto');
-		ga('send', 'pageview');
 	</script>
 </body>
 </html>

@@ -1,17 +1,17 @@
 Ext.define('Datanium.controller.Homepage', {
 	extend : 'Ext.app.Controller',
-	views : [ 'Toolbar', 'ReportTemplate', 'LeftPanel', 'IndicatorSearchCombo', 'Accordion', 'ElementPanel',
-			'DataPanel', 'InnerToolbar' ],
+	views : [ 'ReportTemplate', 'LeftPanel', 'IndicatorSearchCombo', 'Accordion', 'ElementPanel', 'DataPanel',
+			'InnerToolbar', 'SearchBox' ],
 	models : [ 'Indicator' ],
 	stores : [ 'Indicators' ],
 	init : function() {
 		this.control({
 			'viewport reporttemplate' : {},
-			'leftpanel > searchcombo' : {
+			'searchcombo' : {
 				select : this.addIndicator
 			},
 			'inner-toolbar > button[action=grid-mode]' : {
-				click : function(btn) {
+				toggle : function(btn) {
 					if (Datanium.GlobalData.rptMode != 'grid') {
 						Datanium.GlobalData.rptMode = 'grid';
 						Datanium.util.CommonUtils.getCmpInActiveTab('datapanel').getLayout().setActiveItem(0);
@@ -19,7 +19,7 @@ Ext.define('Datanium.controller.Homepage', {
 				}
 			},
 			'inner-toolbar > button[action=chart-mode]' : {
-				click : function(btn) {
+				toggle : function(btn) {
 					if (Datanium.GlobalData.rptMode != 'chart') {
 						Datanium.GlobalData.rptMode = 'chart';
 						Datanium.util.CommonUtils.getCmpInActiveTab('datapanel').getLayout().setActiveItem(1);
@@ -27,7 +27,7 @@ Ext.define('Datanium.controller.Homepage', {
 				}
 			},
 			'inner-toolbar > button[action=analysis-mode]' : {
-				click : function(btn) {
+				toggle : function(btn) {
 					if (Datanium.GlobalData.rptMode != 'analysis') {
 						Datanium.GlobalData.rptMode = 'analysis';
 						Datanium.util.CommonUtils.getCmpInActiveTab('datapanel').getLayout().setActiveItem(2);
@@ -41,7 +41,7 @@ Ext.define('Datanium.controller.Homepage', {
 				}
 			},
 			'inner-toolbar > button[action=show-fields]' : {
-				click : function(btn) {
+				toggle : function(btn) {
 					var fieldpanel = Datanium.util.CommonUtils.getCmpInActiveTab('fieldpanel');
 					if (btn.pressed) {
 						fieldpanel.show();
@@ -51,7 +51,7 @@ Ext.define('Datanium.controller.Homepage', {
 				}
 			},
 			'inner-toolbar > button[action=auto-run]' : {
-				click : function(btn) {
+				toggle : function(btn) {
 					if (btn.pressed) {
 						Datanium.GlobalData.autoRun = true;
 					} else {
@@ -67,16 +67,28 @@ Ext.define('Datanium.controller.Homepage', {
 		});
 	},
 	addIndicator : function(combobox) {
-		var key = '';
-		if (typeof combobox === 'object') // from extjs combobox
+		var key = null;
+		var dim_key = null;
+		var dim_value = null;
+		if (typeof combobox === 'object') {// from extjs combobox
+			// var keys = combobox.getValue().split('///');
+			// if (keys.length > 1) {
+			// dim_key = keys[1];
+			// dim_value = keys[2];
+			// }
+			// key = keys[0];
 			key = combobox.getValue();
+		}
 		if (typeof combobox === 'string') // from outside page search box
 			key = combobox
 		var leftpanel = Datanium.util.CommonUtils.getCmpInActiveTab('leftpanel');
 		var mask = new Ext.LoadMask(leftpanel, {
-			msg : "Loading..."
+			msg : Datanium.GlobalStatic.label_loading
 		});
 		mask.show();
+		if (dim_key !== null) {
+			// to be added: apply filter directly base on keyword
+		}
 		var requestConfig = {
 			url : '/rest/indicator/map?idc=' + key,
 			timeout : 300000,
@@ -90,7 +102,9 @@ Ext.define('Datanium.controller.Homepage', {
 				// clean up the query param/result when adding indicator.
 				// should enhance this to keeping param in the future.
 				// Datanium.util.CommonUtils.cleanData();
-				Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent('refreshElementPanel');
+				Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent('refreshElementPanel',
+						result.measures);
+				Datanium.util.CommonUtils.checkEnableFilter();
 			},
 			failure : function() {
 				mask.destroy();
@@ -99,10 +113,9 @@ Ext.define('Datanium.controller.Homepage', {
 		if (this.isValidMeasures()) {
 			Ext.Ajax.request(requestConfig);
 		} else {
-			Ext.MessageBox.alert("Alert", "Sorry, you cannot add more than 10 measures.");
+			Ext.MessageBox.alert("Alert", Datanium.GlobalStatic.label_select_mea_limit);
 			mask.destroy();
 		}
-
 	},
 	isValidMeasures : function() {
 		var measures = Datanium.GlobalData.qubeInfo.measures;

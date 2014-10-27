@@ -1,0 +1,22 @@
+doctype html
+html(lang="en")
+	head
+		include ../public/header.html
+		include ./header-app.jade
+		include ./header.jade
+	body
+		include ../public/index.html
+		include ../public/common.html
+		include ../public/foot.html
+script(type='text/javascript').
+	var loginUserEmail = '#{userEmail}';
+	var loginUsername = '#{username}';
+if hasHashKey
+	script(type='text/javascript').
+		console.log('hashid:#{hashid}');
+		Datanium.GlobalData.hashid = '#{hashid}';
+		Datanium.GlobalData.qubeInfo = !{qubeInfo};
+		Datanium.GlobalData.queryParam = !{queryParam};
+		Datanium.GlobalData.rptMode = '#{rptMode}';
+		Datanium.GlobalData.chartMode = '#{chartMode}';
+		

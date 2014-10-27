@@ -1,13 +1,15 @@
-/**
- * Module dependencies.
- */
-
 var express = require('express');
-var routes = require('./routes');
-var rest = require('./routes/rest');
-var userManagement = require('./routes/userManagement');
 var http = require('http');
 var path = require('path');
+var routes = require('./routes');
+var cache = require('./utils/cacheUtil');
+
+// routes config
+var rest = require('./routes/rest');
+var user = require('./routes/userController');
+var indicator = require('./routes/indicatorController');
+var report = require('./routes/reportController');
+var others = require('./routes/others');
 
 var app = express();
 
@@ -22,6 +24,23 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
 app.use(express.session());
+
+// i18n
+var i18n = require('i18n-2');
+i18n.expressBind(app, {
+	locales : [ 'zh', 'en' ],
+	defaultLocale : 'zh',
+	extension : ".json",
+	cookieName : 'locale',
+	directory : __dirname + '/locales'
+});
+
+app.use(function(req, res, next) {
+	req.i18n.setLocaleFromCookie();
+	//req.i18n.setLocaleFromQuery();
+	next();
+});
+
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -30,16 +49,33 @@ if ('development' == app.get('env')) {
 	app.use(express.errorHandler());
 }
 
-app.get('/:hashid', routes.index);
-app.get('/helloworld', routes.helloworld);
+// for request disable cache
+var nocache = function(req, res, next) {
+	res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+	res.header('Expires', '-1');
+	res.header('Pragma', 'no-cache');
+	next();
+};
+
+// init server cache
+// cache.init();
+
+app.get('/', routes.index);
 app.post('/rest/query/result', rest.queryResult);
-app.get('/rest/indicator/search', rest.indicatorSearch);
+app.get('/rest/indicator/search', indicator.searchIndicator);
 app.get('/rest/indicator/map', rest.indicatorMapping);
 app.get('/rest/dimension/search', rest.dimensionValueSearch);
 app.post('/rest/query/split', rest.querySplit);
 app.get('/rest/query/topicSearch', rest.topicSearch);
 app.post('/rest/save', rest.save);
-app.post('/userManagement/saveUser', userManagement.saveUser);
+app.post('/signup', user.saveUser);
+app.post('/login', user.login);
+app.get('/signout', nocache, user.signout);
+app.get('/user/space', nocache, user.space);
+app.get('/user/report/remove/:rptId', report.remove)
+app.post('/feedback/save', others.feedbacksave);
+app.get('/release_notes', others.release_notes);
+app.get('/:hashid', routes.index);
 
 http.createServer(app).listen(app.get('port'), function() {
 	console.log('Express server listening on port ' + app.get('port'));
