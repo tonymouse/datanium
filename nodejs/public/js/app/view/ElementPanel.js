@@ -93,8 +93,11 @@ Ext.define('Datanium.view.ElementPanel', {
 							var btn = {
 								uniqueName : m.uniqueName,
 								xtype : 'splitbutton',
-								text : Datanium.util.CommonUtils.limitLabelLength(m.text + ' - ' + m.data_source, 32),
-								tooltip : m.text + ' - ' + m.data_source,
+								// text :
+								// Datanium.util.CommonUtils.limitLabelLength(m.text
+								// + ' - ' + m.data_source, 32),
+								text : Datanium.util.CommonUtils.limitLabelLength(m.text, 32),
+								tooltip : m.text,
 								tooltipType : 'title',
 								params : {
 									data_type : m.data_type,
@@ -128,6 +131,15 @@ Ext.define('Datanium.view.ElementPanel', {
 											}
 										},
 										{
+											iconCls : 'fa fa-info-circle',
+											text : Datanium.GlobalStatic.label_desc,
+											handler : function() {
+												var btn = this.parentMenu.ownerButton;
+												Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent(
+														'popDesc', btn.uniqueName, btn.text);
+											}
+										},
+										{
 											iconCls : 'fa fa-trash-o',
 											text : Datanium.GlobalStatic.label_remove,
 											handler : function() {
@@ -152,7 +164,7 @@ Ext.define('Datanium.view.ElementPanel', {
 					var indicator = indicators[0];
 					Ext.Array.each(ep.items.items, function(rec, idx) {
 						if (indicator.uniqueName === rec.uniqueName) {
-							ep.items.items[idx].toggle();
+							ep.items.items[idx].toggle(true);
 						}
 					});
 				}

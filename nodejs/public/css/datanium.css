@@ -236,7 +236,7 @@ legend {
 }
 
 .user_space_reports {
-	line-height: 50px;
+	line-height: 10px;
 }
 
 .x-toolbar {
@@ -304,4 +304,12 @@ legend {
 
 .index-container #release_note_div {
 	padding-top: 30px;
+}
+
+.x-hmenu-unlock .x-menu-item-icon {
+  background-image: url(/img/lock_open.png);
+}
+
+.x-hmenu-lock .x-menu-item-icon {
+  background-image: url(/img/lock.png);
 }

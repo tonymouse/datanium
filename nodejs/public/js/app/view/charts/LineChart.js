@@ -2,13 +2,13 @@ var chart_store_template = Datanium.util.CommonUtils.getStoreTemplate();
 
 function genLineChartStore(template, fields) {
 	template.fields = mergeFields(fields);
-	if (Datanium.GlobalData.QueryResult4Chart != null) {
+	if (Datanium.GlobalData.queryResult4Chart != null) {
 		// clone
-		var queryResult = JSON.parse(JSON.stringify(Datanium.GlobalData.QueryResult4Chart));
+		var queryResult = JSON.parse(JSON.stringify(Datanium.GlobalData.queryResult4Chart));
 		if (Datanium.GlobalData.autoScale) {
 			template.data = Datanium.util.CommonUtils.scaleMeasures(queryResult, yFields);
 		} else {
-			template.data = Datanium.GlobalData.QueryResult4Chart;
+			template.data = Datanium.GlobalData.queryResult4Chart;
 		}
 	}
 	eval("LineChartStore = Ext.create('Ext.data.Store'," + Ext.encode(template) + ");");
@@ -46,7 +46,7 @@ function generateSeries4Line(yFields, yFieldsTxt, xFieldsLabel) {
 			highlight : true,
 			smooth : true,
 			showMarkers : false,
-			// fill : true,
+			fill : true,
 			xField : xFieldsLabel,
 			yField : yfld,
 			title : yFieldsTxt[index]
@@ -56,10 +56,12 @@ function generateSeries4Line(yFields, yFieldsTxt, xFieldsLabel) {
 				style : 'background:#fff; text-align: center;',
 				trackMouse : true,
 				width : 140,
-				height : 28,
+				height : 42,
 				renderer : function(storeItem, item) {
-					this.setTitle(storeItem.get(yfld) + '');
-					this.width = this.title.length * 10;
+					var tooltipTitle = yFieldsTxt[index] + ' ' + storeItem.get(xFieldsLabel) + '<br>';
+					var tooltipValue = storeItem.get(yfld);
+					this.setTitle(tooltipTitle + tooltipValue);
+					this.width = tooltipTitle.length * 10;
 				}
 			};
 		}
@@ -99,7 +101,7 @@ Ext.define('Datanium.view.charts.LineChart', {
 		if (Datanium.GlobalData.enableQuery) {
 			if (Datanium.GlobalData.queryParam != null) {
 				fields_json = Datanium.GlobalData.queryParam;
-				if (Datanium.GlobalData.QueryResult4Chart != null) {
+				if (Datanium.GlobalData.queryResult4Chart != null) {
 					this.hidden = false;
 				}
 			} else {
@@ -161,8 +163,7 @@ Ext.define('Datanium.view.charts.LineChart', {
 			label : {
 				renderer : yLabel
 			},
-			grid : true,
-			minimum : 0
+			grid : true
 		}, {
 			type : 'Category',
 			position : 'bottom',

@@ -8,7 +8,8 @@ Ext.define('Datanium.controller.FieldController', {
 			'elementPanel' : {
 				selectionChange : this.elementSelChange,
 				popFilter : this.searchDimensionValue,
-				submitFilter : this.submitFilter
+				submitFilter : this.submitFilter,
+				popDesc : this.loadIndicatorValue
 			}
 		});
 	},
@@ -28,7 +29,7 @@ Ext.define('Datanium.controller.FieldController', {
 		Datanium.GlobalData.popDimensionKey = null;
 		Datanium.GlobalData.popDimension = null;
 		var requestConfig = {
-			url : '/rest/dimension/search?dim=' + key,
+			url : '/dimension/search?dim=' + key,
 			timeout : 300000,
 			success : function(response) {
 				mask.destroy();
@@ -50,5 +51,20 @@ Ext.define('Datanium.controller.FieldController', {
 		Datanium.util.CommonUtils.updateFilterFields();
 		this.getController('GridController').generateRpt(true);
 		this.getController('ChartController').reloadFilterSwitchMenu();
+	},
+	loadIndicatorValue : function(key, name) {
+		console.log('loadIndicatorValue');
+		var measures = Datanium.GlobalData.qubeInfo.measures;
+		Ext.Array.forEach(measures, function(m) {
+			if (m.uniqueName == key) {
+				var desc = m.source_note;
+				var title = m.data_source + ' - ' + m.text;
+				if (desc == null || desc.length == 0) {
+					desc = Datanium.GlobalStatic.label_no_desc;
+				}
+				Ext.Msg.alert(title, desc);
+				return;
+			}
+		});
 	}
 });

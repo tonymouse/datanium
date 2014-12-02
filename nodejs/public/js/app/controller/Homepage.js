@@ -68,15 +68,7 @@ Ext.define('Datanium.controller.Homepage', {
 	},
 	addIndicator : function(combobox) {
 		var key = null;
-		var dim_key = null;
-		var dim_value = null;
 		if (typeof combobox === 'object') {// from extjs combobox
-			// var keys = combobox.getValue().split('///');
-			// if (keys.length > 1) {
-			// dim_key = keys[1];
-			// dim_value = keys[2];
-			// }
-			// key = keys[0];
 			key = combobox.getValue();
 		}
 		if (typeof combobox === 'string') // from outside page search box
@@ -86,11 +78,8 @@ Ext.define('Datanium.controller.Homepage', {
 			msg : Datanium.GlobalStatic.label_loading
 		});
 		mask.show();
-		if (dim_key !== null) {
-			// to be added: apply filter directly base on keyword
-		}
 		var requestConfig = {
-			url : '/rest/indicator/map?idc=' + key,
+			url : '/indicator/map?idc=' + key,
 			timeout : 300000,
 			success : function(response) {
 				mask.destroy();
@@ -123,6 +112,44 @@ Ext.define('Datanium.controller.Homepage', {
 			return false;
 		} else {
 			return true;
+		}
+	},
+	addIndicatorWithFilter : function(key, filterName, filterValue) {
+		var leftpanel = Datanium.util.CommonUtils.getCmpInActiveTab('leftpanel');
+		var mask = new Ext.LoadMask(leftpanel, {
+			msg : Datanium.GlobalStatic.label_loading
+		});
+		mask.show();
+		var requestConfig = {
+			url : '/indicator/map?idc=' + key,
+			timeout : 300000,
+			success : function(response) {
+				mask.destroy();
+				var result = Ext.JSON.decode(response.responseText, true);
+				Datanium.GlobalData.qubeInfo.dimensions = Datanium.util.CommonUtils.pushElements2Array(
+						result.dimensions, Datanium.GlobalData.qubeInfo.dimensions);
+				Datanium.GlobalData.qubeInfo.measures = Datanium.util.CommonUtils.pushElements2Array(result.measures,
+						Datanium.GlobalData.qubeInfo.measures);
+				// apply filter value with selected indicator
+				if (filterName !== null) {
+					Datanium.util.CommonUtils.addFilter(filterName, filterValue);
+					Datanium.util.CommonUtils.updateFilterFields();
+					Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent('selectionChange');
+					Datanium.app.getController('ChartController').reloadFilterSwitchMenu();
+				}
+				Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent('refreshElementPanel',
+						result.measures);
+				Datanium.util.CommonUtils.checkEnableFilter();
+			},
+			failure : function() {
+				mask.destroy();
+			}
+		};
+		if (this.isValidMeasures()) {
+			Ext.Ajax.request(requestConfig);
+		} else {
+			Ext.MessageBox.alert("Alert", Datanium.GlobalStatic.label_select_mea_limit);
+			mask.destroy();
 		}
 	}
 });

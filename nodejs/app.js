@@ -5,7 +5,7 @@ var routes = require('./routes');
 var cache = require('./utils/cacheUtil');
 
 // routes config
-var rest = require('./routes/rest');
+var data = require('./routes/dataController');
 var user = require('./routes/userController');
 var indicator = require('./routes/indicatorController');
 var report = require('./routes/reportController');
@@ -14,7 +14,7 @@ var others = require('./routes/others');
 var app = express();
 
 // all environments
-app.set('port', process.env.PORT || 80);
+app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(express.favicon());
@@ -37,7 +37,7 @@ i18n.expressBind(app, {
 
 app.use(function(req, res, next) {
 	req.i18n.setLocaleFromCookie();
-	//req.i18n.setLocaleFromQuery();
+	// req.i18n.setLocaleFromQuery();
 	next();
 });
 
@@ -61,18 +61,20 @@ var nocache = function(req, res, next) {
 // cache.init();
 
 app.get('/', routes.index);
-app.post('/rest/query/result', rest.queryResult);
-app.get('/rest/indicator/search', indicator.searchIndicator);
-app.get('/rest/indicator/map', rest.indicatorMapping);
-app.get('/rest/dimension/search', rest.dimensionValueSearch);
-app.post('/rest/query/split', rest.querySplit);
-app.get('/rest/query/topicSearch', rest.topicSearch);
-app.post('/rest/save', rest.save);
+app.get('/dimension/search', others.dimensionValueSearch);
+app.get('/indicator/search', indicator.searchIndicator);
+app.get('/indicator/map', indicator.indicatorMapping);
+app.get('/indicator/topicSearch', indicator.topicSearch);
+app.get('/indicator/countrySearch', indicator.countrySearch);
+app.get('/indicator/countryLoad', indicator.countryLoad);
+app.post('/data/result', data.queryResult);
+app.post('/data/split', data.querySplit);
 app.post('/signup', user.saveUser);
 app.post('/login', user.login);
 app.get('/signout', nocache, user.signout);
 app.get('/user/space', nocache, user.space);
-app.get('/user/report/remove/:rptId', report.remove)
+app.post('/report/save', report.save);
+app.get('/report/remove/:rptId', report.remove)
 app.post('/feedback/save', others.feedbacksave);
 app.get('/release_notes', others.release_notes);
 app.get('/:hashid', routes.index);

@@ -24,42 +24,6 @@ Ext
 								return container.down(selector);
 							}
 						},
-						updateQueryParam : function() {
-							var dimensionTree = Datanium.util.CommonUtils.getCmpInActiveTab('dimensionTree');
-							var dimensions = dimensionTree.getView().getChecked(), dimNodes = [];
-							Ext.Array.each(dimensions, function(rec) {
-								var id = rec.get('id');
-								var name = rec.get('text');
-								var dimItem = {
-									uniqueName : id,
-									text : name,
-									data_type : 'dimension',
-									field_type : 'row',
-									displayOrder : 0,
-									display : true
-								}
-								dimNodes.push(dimItem);
-							});
-							var measureTree = Datanium.util.CommonUtils.getCmpInActiveTab('measureTree');
-							var measures = measureTree.getView().getChecked(), meaNodes = [];
-							Ext.Array.each(measures, function(rec) {
-								var id = rec.get('id');
-								var name = rec.get('text');
-								var meaItem = {
-									uniqueName : id,
-									text : name,
-									data_type : 'measure',
-									field_type : 'column',
-									displayOrder : 0,
-									display : true
-								}
-								meaNodes.push(meaItem);
-							});
-							var queryParam = Datanium.GlobalData.queryParam;
-							queryParam.dimensions = dimNodes;
-							queryParam.measures = meaNodes;
-							Datanium.util.CommonUtils.updateFields();
-						},
 						updateQueryParamByEP : function(toggleDimension) {
 							var epItems = Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').items;
 							var dimNodes = [];
@@ -105,6 +69,8 @@ Ext
 												}
 												dimNodes.push(dimItem);
 											}
+										} else if (!rec.pressed && toggleDimension === id) {
+											Datanium.util.CommonUtils.removeColumnConvert(id);
 										}
 									});
 							if (Datanium.GlobalData.queryParam.primaryDimension == null && dimNodes.length > 0) {
@@ -114,7 +80,7 @@ Ext
 							var queryParam = Datanium.GlobalData.queryParam;
 							queryParam.dimensions = dimNodes;
 							queryParam.measures = meaNodes;
-							Datanium.GlobalData.QueryResult = null;
+							Datanium.GlobalData.queryResult = null;
 							Datanium.util.CommonUtils.updateFields();
 						},
 						updateEPSelection : function() {
@@ -128,12 +94,12 @@ Ext
 								var id = rec.uniqueName;
 								Ext.Array.each(dimNodes, function(d) {
 									if (id === d.uniqueName) {
-										epItems.items[idx].toggle();
+										epItems.items[idx].toggle(true);
 									}
 								});
 								Ext.Array.each(meaNodes, function(m) {
 									if (id === m.uniqueName) {
-										epItems.items[idx].toggle();
+										epItems.items[idx].toggle(true);
 									}
 								});
 							});
@@ -168,7 +134,11 @@ Ext
 									var field = {
 										uniqueName : mea.uniqueName,
 										text : mea.text,
-										cls : 'fieldBtn-m'
+										cls : 'fieldBtn-m',
+										handler : function(me) {
+											Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel').fireEvent(
+													'popDesc', me.uniqueName, me.text);
+										}
 									};
 									meaField.add(field);
 								});
@@ -440,8 +410,8 @@ Ext
 								},
 								isSplit : false
 							};
-							Datanium.GlobalData.QueryResult = null;
-							Datanium.GlobalData.QueryResult4Chart = null;
+							Datanium.GlobalData.queryResult = null;
+							Datanium.GlobalData.queryResult4Chart = null;
 							Datanium.util.CommonUtils.getCmpInActiveTab('elementPanel')
 									.fireEvent('refreshElementPanel');
 							Datanium.util.CommonUtils.refreshAll();
@@ -480,6 +450,121 @@ Ext
 								return true;
 							else
 								return false;
+						},
+						getChartModeStr : function() {
+							if (Datanium.GlobalData.chartMode == 'columnchart') {
+								return Datanium.GlobalStatic.label_column_chart;
+							}
+							if (Datanium.GlobalData.chartMode == 'stackchart') {
+								return Datanium.GlobalStatic.label_stack_chart;
+							}
+							if (Datanium.GlobalData.chartMode == 'linechart') {
+								return Datanium.GlobalStatic.label_line_chart;
+							}
+						},
+						getChartModeStar : function(chartMode) {
+							if (Datanium.GlobalData.chartMode == chartMode) {
+								return 'fa fa-star-o';
+							} else {
+								return '';
+							}
+						},
+						addFilter : function(filterName, filterValue) {
+							var dimensions = Datanium.GlobalData.queryParam.dimensions;
+							var isDimExist = false;
+							Ext.Array.each(dimensions, function(item) {
+								if (item.uniqueName == filterName) {
+									isDimExist = true;
+									return;
+								}
+							});
+							if (!isDimExist) {
+								var filterText = '';
+								Ext.Array.each(Datanium.GlobalData.qubeInfo.dimensions, function(rec) {
+									if (rec.uniqueName == filterName)
+										filterText = rec.text;
+								});
+								var dim = {
+									data_type : "dimension",
+									display : true,
+									displayOrder : 0,
+									text : filterText,
+									uniqueName : filterName
+								};
+								Datanium.GlobalData.queryParam.dimensions.push(dim);
+							}
+
+							if ('filters' in Datanium.GlobalData.queryParam === false) {
+								Datanium.GlobalData.queryParam.filters = {};
+							}
+							if (filterName in Datanium.GlobalData.queryParam.filters === false) {
+								eval('Datanium.GlobalData.queryParam.filters.' + filterName + '=[\'' + filterValue
+										+ '\'];')
+							} else {
+								eval('Datanium.GlobalData.queryParam.filters.' + filterName + '.push(\'' + filterValue
+										+ '\');')
+							}
+							Datanium.GlobalData.queryParam.primaryFilter = filterName;
+							Datanium.GlobalData.queryParam.split = {
+								dimensions : filterName,
+								splitValue : eval('Datanium.GlobalData.queryParam.filters.' + filterName)
+							};
+							Datanium.GlobalData.queryParam.isSplit = true;
+						},
+						mergeObjects : function(obj1, obj2) {
+							var obj3 = {};
+							for ( var attrname in obj1) {
+								obj3[attrname] = obj1[attrname];
+							}
+							for ( var attrname in obj2) {
+								obj3[attrname] = obj2[attrname];
+							}
+							return obj3;
+						},
+						columnConvert : function(originKey) {
+							if (Datanium.GlobalData.queryParam.columns == null)
+								Datanium.GlobalData.queryParam.columns = [];
+							if (Datanium.GlobalData.queryParam.columns.indexOf(originKey) < 0) {
+								Datanium.GlobalData.queryParam.columns.push(originKey);
+							} else {
+								var index = Datanium.GlobalData.queryParam.columns.indexOf(originKey);
+								Datanium.GlobalData.queryParam.columns.splice(index, 1);
+							}
+						},
+						removeColumnConvert : function(column) {
+							if (Datanium.GlobalData.queryParam.columns != null) {
+								var index = Datanium.GlobalData.queryParam.columns.indexOf(column);
+								if (index >= 0) {
+									Datanium.GlobalData.queryParam.columns.splice(index, 1);
+								}
+							}
+						},
+						columnLock : function(uniqueName) {
+							if (Datanium.GlobalData.queryParam.locking == null)
+								Datanium.GlobalData.queryParam.locking = [];
+							if (Datanium.GlobalData.queryParam.locking.indexOf(uniqueName) < 0) {
+								Datanium.GlobalData.queryParam.locking.push(uniqueName);
+							} else {
+								var index = Datanium.GlobalData.queryParam.locking.indexOf(uniqueName);
+								Datanium.GlobalData.queryParam.locking.splice(index, 1);
+							}
+						},
+						objClone : function(obj) {
+							var ret = new Object();
+							for ( var p in obj) {
+								ret[p] = obj[p];
+							}
+							return ret;
+						},
+						getDimenionKeys : function() {
+							var dimKeys = [];
+							if (Datanium.GlobalData.queryParam !== null
+									&& Datanium.GlobalData.queryParam.dimensions !== null) {
+								Datanium.GlobalData.queryParam.dimensions.forEach(function(dim) {
+									dimKeys.push(dim.uniqueName);
+								});
+							}
+							return dimKeys;
 						}
 					}
 				});

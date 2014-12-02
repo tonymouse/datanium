@@ -2,12 +2,12 @@ var chart_store_template = Datanium.util.CommonUtils.getStoreTemplate();
 
 function genColumnChartStore(template, fields) {
 	template.fields = mergeFields(fields);
-	if (Datanium.GlobalData.QueryResult4Chart != null) {
-		var queryResult = JSON.parse(JSON.stringify(Datanium.GlobalData.QueryResult4Chart));
+	if (Datanium.GlobalData.queryResult4Chart != null) {
+		var queryResult = JSON.parse(JSON.stringify(Datanium.GlobalData.queryResult4Chart));
 		if (Datanium.GlobalData.autoScale) {
 			template.data = Datanium.util.CommonUtils.scaleMeasures(queryResult, yFields);
 		} else {
-			template.data = Datanium.GlobalData.QueryResult4Chart;
+			template.data = Datanium.GlobalData.queryResult4Chart;
 		}
 	}
 	eval("ColumnChartStore = Ext.create('Ext.data.Store'," + Ext.encode(template) + ");");
@@ -55,7 +55,7 @@ Ext.define('Datanium.view.charts.ColumnChart', {
 		if (Datanium.GlobalData.enableQuery) {
 			if (Datanium.GlobalData.queryParam != null) {
 				fields_json = Datanium.GlobalData.queryParam;
-				if (Datanium.GlobalData.QueryResult4Chart != null) {
+				if (Datanium.GlobalData.queryResult4Chart != null) {
 					this.hidden = false;
 				}
 			}
@@ -121,8 +121,7 @@ Ext.define('Datanium.view.charts.ColumnChart', {
 			label : {
 				renderer : yLabel
 			},
-			grid : true,
-			minimum : 0
+			grid : true
 		}, {
 			type : 'Category',
 			position : 'bottom',
@@ -137,24 +136,27 @@ Ext.define('Datanium.view.charts.ColumnChart', {
 			type : 'column',
 			axis : 'left',
 			highlight : true,
-			/*
-			 * label : { display : 'insideEnd', 'text-anchor' : 'middle', field : [
-			 * 'China', 'US' ], renderer : Ext.util.Format.numberRenderer('0'),
-			 * orientation : 'horizontal', color : '#fff' },
-			 */
 			xField : xFieldsLabel,
 			yField : yFields,
 			title : yFieldsTxt
 		} ]
 		if (!Datanium.GlobalData.autoScale) {
-			s.tips = {
+			s[0].tips = {
 				style : 'background:#fff; text-align: center;',
 				trackMouse : true,
 				width : 140,
-				height : 28,
+				height : 42,
 				renderer : function(storeItem, item) {
-					this.setTitle(storeItem.get(item.yField) + '');
-					this.width = this.title.length * 10;
+					var yftxt = '';
+					Ext.Array.each(yFields, function(yf, index) {
+						if (yf == item.yField) {
+							yftxt = yFieldsTxt[index];
+						}
+					});
+					var tooltipTitle = yftxt + ' ' + storeItem.get(xFieldsLabel) + '<br>';
+					var tooltipValue = storeItem.get(item.yField);
+					this.setTitle(tooltipTitle + tooltipValue);
+					this.width = tooltipTitle.length * 10;
 				}
 			};
 		}

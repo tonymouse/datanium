@@ -14,6 +14,9 @@ Ext.define('Datanium.controller.GridController', {
 			'datagridview' : {
 				afterrender : this.onGridPanelReady,
 				beforeshow : this.onGridPanelShow
+			},
+			'dynamicdatagrid' : {
+				afterrender : this.onDatagridReady
 			}
 		});
 	},
@@ -23,11 +26,11 @@ Ext.define('Datanium.controller.GridController', {
 			var mask = new Ext.LoadMask(dataViewBox, {
 				msg : Datanium.GlobalStatic.label_loading
 			});
-			Datanium.GlobalData.QueryResult = null;
+			Datanium.GlobalData.queryResult = null;
 			if (this.isQueryValid()) {
-				var queryUrl = '/rest/query/result';
+				var queryUrl = '/data/result';
 				if (Datanium.GlobalData.queryParam.isSplit && Datanium.GlobalData.queryParam.isSplit !== 'false') {
-					queryUrl = '/rest/query/split';
+					queryUrl = '/data/split';
 				}
 				var queryParam = Datanium.GlobalData.queryParam;
 				var requestConfig = {
@@ -37,9 +40,10 @@ Ext.define('Datanium.controller.GridController', {
 					success : function(response) {
 						mask.destroy();
 						var result = Ext.JSON.decode(response.responseText, true);
-						Datanium.GlobalData.QueryResult = result.grid;
-						Datanium.GlobalData.QueryResult4Chart = result.chart;
+						Datanium.GlobalData.queryResult = result.grid;
+						Datanium.GlobalData.queryResult4Chart = result.chart;
 						Datanium.util.CommonUtils.refreshAll();
+						console.log('Query execution time: ' + result.execute_time + ' ms.')
 					},
 					failure : function() {
 						mask.destroy();
@@ -88,5 +92,32 @@ Ext.define('Datanium.controller.GridController', {
 	},
 	onGridPanelShow : function() {
 		console.log('onGridPanelShow');
+	},
+	onDatagridReady : function(me) {
+		this.addMenu(me);
+		this.addMenu(me.normalGrid);
+	},
+	addMenu : function(datagrid) {
+		if (datagrid != null) {
+			var menu = datagrid.headerCt.getMenu();
+			var menuItemConvert = menu.add({
+				text : Datanium.GlobalStatic.label_row_col_convert,
+				icon : '/img/arrow_refresh.png',
+				handler : function() {
+					var originKey = menu.activeHeader.originKey;
+					Datanium.util.CommonUtils.columnConvert(originKey);
+					Datanium.util.CommonUtils.getCmpInActiveTab('dynamicdatagrid').fireEvent('refreshDatagrid');
+				}
+			});
+			menu.on('beforeshow', function() {
+				var originKey = menu.activeHeader.originKey;
+				var dimenionKeys = Datanium.util.CommonUtils.getDimenionKeys();
+				if (dimenionKeys.indexOf(originKey) < 0) {
+					menuItemConvert.hide();
+				} else {
+					menuItemConvert.show();
+				}
+			});
+		}
 	}
 });

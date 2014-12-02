@@ -3,82 +3,12 @@ var indicator = require('../data/indicator');
 var dataset = require('../data/dataset');
 var report = require('../data/report');
 var async = require('../lib/async');
-var hashids = require('../lib/hashids');
 var IndicatorSchema = indicator.Indicator;
 var datasetSchema = dataset.Dataset;
 var reportSchema = report.Report;
 
-exports.topicSearch = function(req, res) {
-	var resultJSON = [];
-	var mainTopic = '';
-	var indicatorText = [];
-	var indicatorKey = [];
-	/*
-	 * IndicatorSchema.aggregate().group({ '_id' : '$topic' }).project({ 'topic' :
-	 * '$_id'
-	 */
-	IndicatorSchema.find({}, {
-		_id : 0,
-		topic : 1,
-		indicator_text : 1,
-		indicator_key : 1
-	}).sort({
-		'topic' : 1
-	}).exec(function(err, doc) {
-		// .match({'topic' : 'Education: Efficiency'})
-		// IndicatorSchema.find().select({'topic' : 1, '_id' :
-		// 0}).sort({'topic':1}).exec(function(err, doc) {
-		// IndicatorSchema.distinct('topic').sort().exec(function(err, doc) {
-		if (err)
-			console.log('Exception: ' + err);
-		doc.forEach(function(item, index) {
-			if (item.topic == null)
-				return;
-			var topicArray = item.topic.split(':');
-			var mainTopicStr = topicArray[0].trim();
-			if (mainTopicStr == '')
-				return;
-			// var subTopicStr = topicArray[topicArray.length - 1].trim();
-			var indicatorTextStr = item.indicator_text.trim();
-			var indicatorKeyStr = item.indicator_key.trim();
-			// console.log(mainTopicStr);
-			// console.log(indicatorTextStr);
-			if (index == 0) {
-				mainTopic = mainTopicStr;
-				indicatorText.push(indicatorTextStr);
-				indicatorKey.push(indicatorKeyStr);
-			} else if (mainTopicStr == mainTopic) {
-				indicatorText.push(indicatorTextStr);
-				indicatorKey.push(indicatorKeyStr);
-			} else {
-				var topic = {
-					'topic' : mainTopic,
-					'indicatorText' : indicatorText,
-					'indicatorKey' : indicatorKey
-				}
-				resultJSON.push(topic);
-				mainTopic = mainTopicStr;
-				indicatorText = [];
-				indicatorKey = [];
-				indicatorText.push(indicatorTextStr);
-				indicatorKey.push(indicatorKeyStr);
-
-			}
-			// resultJSON.push(item.topic);
-		});
-		// deal with the last topic
-		var topic = {
-			'topic' : mainTopic,
-			'indicatorText' : indicatorText,
-			'indicatorKey' : indicatorKey
-		}
-		resultJSON.push(topic);
-		res.send(resultJSON);
-	});
-
-};
-
 exports.querySplit = function(req, res) {
+	var start = new Date().getTime();
 	var resultJSON = {
 		"grid" : {
 			"total" : 0,
@@ -108,7 +38,7 @@ exports.querySplit = function(req, res) {
 						1000).exec(function(err, doc) {
 					if (err)
 						throw err;
-					resultJSON.grid.result = doc;
+					resultJSON.grid.result = convertResult(doc, false);
 					resultJSON.grid.total = doc.length;
 					callback();
 				});
@@ -119,11 +49,14 @@ exports.querySplit = function(req, res) {
 						sortStr4Chart).limit(1000).exec(function(err, doc) {
 					if (err)
 						throw err;
-					// console.log(doc);
-					resultJSON.chart.result = doc;
+					resultJSON.chart.result = convertResult(doc, true);
 					callback();
 				});
 			} ], function() {
+		var end = new Date().getTime();
+		var time = end - start;
+		console.log('Query execution time: ' + time + ' ms');
+		resultJSON.execute_time = time;
 		res.send(resultJSON);
 	});
 };
@@ -199,7 +132,7 @@ function generateGroupSplitObj(queryParam) {
 			}
 			indicatorStr += "\"$";
 			indicatorStr += item.uniqueName;
-			indicatorStr += "\",0]}}";
+			indicatorStr += "\",null]}}";
 		});
 	});
 	var res = "{" + idStr + indicatorStr + "}";
@@ -216,6 +149,7 @@ function generateGroupSplitObj(queryParam) {
 }
 
 exports.queryResult = function(req, res) {
+	var start = new Date().getTime();
 	var queryParam = req.body;
 	var resultJSON = {
 		"grid" : {
@@ -259,6 +193,10 @@ exports.queryResult = function(req, res) {
 							callback();
 						});
 			} ], function() {
+		var end = new Date().getTime();
+		var time = end - start;
+		console.log('Query execution time: ' + time + ' ms');
+		resultJSON.execute_time = time;
 		res.send(resultJSON);
 	});
 };
@@ -320,7 +258,6 @@ function generateGroupObj(queryParam, isChart) {
 		}
 	});
 	var res = "{" + idStr + indicatorStr + "}";
-	console.log(res);
 	var returnObj = eval("(" + res + ")");
 	projectStr += "_id:0}";
 	// console.log(projectStr);
@@ -394,22 +331,34 @@ function generateSortStr(dimensons) {
 
 function convertResult(doc, isChart) {
 	var results = doc;
-	// doc.forEach(function(item) {
-	// var gstr = JSON.stringify(item._id);
-	// gstr = gstr.substring(1, gstr.length - 1);
-	// delete item._id;
-	// var mstr = JSON.stringify(item);
-	// mstr = mstr.substring(1, mstr.length - 1);
-	// var recordStr = '{' + gstr + ',' + mstr + '}';
-	// var recordObj = eval("(" + recordStr + ")");
-	// results.push(recordObj);
-	// });
 	// sort result by year for charts
 	if (isChart) {
 		if (results.length > 0 && 'year' in results[0])
 			bubbleSort(results, 'year');
 		if (results.length > 0 && 'month' in results[0])
 			bubbleSort(results, 'month');
+		// auto filter out continous empty data
+		var removeIdxArray = [];
+		results.every(function(item, index) {
+			var emptyFlag = true;
+			for ( var propertyName in item) {
+				if (propertyName !== 'year' && propertyName !== 'month') {
+					if (item[propertyName] !== 0) {
+						emptyFlag = false;
+						break;
+					}
+				}
+			}
+			if (emptyFlag) {
+				removeIdxArray.push(index);
+			} else {
+				return false;
+			}
+			return true;
+		});
+		for ( var i = removeIdxArray.length - 1; i >= 0; i--) {
+			results.splice(removeIdxArray[i], 1);
+		}
 	}
 	return results;
 }
@@ -432,146 +381,4 @@ function bubbleSort(a, par) {
 function convertSplitValue(str) {
 	var returnStr = str.trim().replace(/ |-|&|\(|\)|\,|\.|\'|\uFF08|\uFF09/g, '');
 	return returnStr;
-}
-
-exports.indicatorMapping = function(req, res) {
-	var indicatorMappingJSON = {};
-	var query = require('url').parse(req.url, true).query;
-	var idc = query.idc;
-	var dimensions = [];
-	var measures = [];
-	IndicatorSchema.find({
-		indicator_key : idc
-	}, function(err, doc) {
-		if (err)
-			console.log('Exception: ' + err);
-		doc.forEach(function(item, index) {
-			var tempDimensions = item.dimension;
-			tempDimensions.forEach(function(dimension, index) {
-				var tempDimension = {
-					"uniqueName" : dimension.dimension_key,
-					"name" : dimension.dimension_key,
-					"text" : dimension.dimension_text
-				};
-				dimensions.push(tempDimension);
-			});
-			var tempMesureJson = {
-				"uniqueName" : item.indicator_key,
-				"name" : item.indicator_key,
-				"text" : item.indicator_text,
-				"data_source" : item.data_source,
-				"data_type" : item.data_type
-			};
-			measures.push(tempMesureJson);
-		});
-		indicatorMappingJSON = {
-			"dimensions" : dimensions,
-			"measures" : measures
-		};
-		res.send(indicatorMappingJSON);
-	});
-}
-
-exports.dimensionValueSearch = function(req, res) {
-	var query = require('url').parse(req.url, true).query;
-	var dimensionValueResultJSON = {};
-	if (query.dim != null) {
-		var key = query.dim.toLowerCase();
-		var results = [];
-		// exclude blank record
-		var matchStr = '{ ' + key + ' : { $ne : \'\' } }';
-		var matchObj = eval("(" + matchStr + ")");
-		datasetSchema.aggregate().match(matchObj).group({
-			'_id' : '$' + key
-		}).sort('field _id').exec(function(err, doc) {
-			if (err)
-				console.log('Exception: ' + err);
-			doc.forEach(function(item, index) {
-				if (item._id != null) {
-					var tempJson = {
-						"name" : item._id
-					};
-					results.push(tempJson);
-				}
-			});
-			dimensionValueResultJSON = {
-				"dimensionValues" : results
-			};
-			// put send here cause callback func is async
-			res.send(dimensionValueResultJSON);
-		});
-	} else {
-		dimensionValueResultJSON = {
-			"dimensionValues" : []
-		};
-		res.send(dimensionValueResultJSON);
-	}
-}
-
-exports.save = function(req, res) {
-	var userEmail = 'anonymous user';
-	if (req.session.user != null)
-		userEmail = req.session.user.email;
-	var reportObj = req.body;
-	var userip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-	var hashid = null;
-	var status = 'success';
-	var date = new Date();
-	async.parallel([ function(callback) {
-		if (reportObj.hashid !== null && reportObj.hashid !== '') {
-			console.log('Update Report ' + reportObj.hashid);
-			// update analysis
-			reportSchema.findOne({
-				hashid : reportObj.hashid
-			}, function(err, rpt) {
-				if (err)
-					throw err;
-				hashid = rpt.hashid;
-				if (rpt.user_id == userEmail) {
-					reportSchema.update({
-						hashid : reportObj.hashid
-					}, {
-						qubeInfo : reportObj.qubeInfo,
-						queryParam : reportObj.queryParam,
-						rptMode : reportObj.rptMode,
-						chartMode : reportObj.chartMode,
-						user_ip : userip,
-						modification_date : date
-					}, function(err, doc) {
-						if (err)
-							throw err;
-						callback();
-					});
-				} else {
-					status = 'userid_not_match';
-					callback();
-				}
-			});
-		} else {
-			console.log('Save New Report');
-			// encrypt hashid
-			var key = date.getTime() * 10 + Math.round(Math.random() * 10);
-			var hashs = new hashids("datanium salt", 4);
-			hashid = hashs.encrypt(key);
-			// save report
-			var newReport = new reportSchema({
-				hashid : hashid,
-				qubeInfo : reportObj.qubeInfo,
-				queryParam : reportObj.queryParam,
-				rptMode : reportObj.rptMode,
-				chartMode : reportObj.chartMode,
-				user_id : userEmail,
-				user_ip : userip,
-				creation_date : date,
-				modification_date : date
-			});
-			newReport.save();
-			callback();
-		}
-	} ], function() {
-		res.send({
-			hashid : hashid,
-			status : status
-		});
-	});
 }

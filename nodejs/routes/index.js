@@ -30,6 +30,10 @@ exports.index = function(req, res) {
 				};
 			if (doc.queryParam.filters == null)
 				doc.queryParam.filters = {};
+			if (doc.autoScale == null)
+				doc.autoScale = false;
+			if (doc.showLegend == null)
+				doc.showLegend = true;
 			res.render('index.ejs', {
 				currPage : 'editor',
 				hasHashKey : true,
@@ -39,6 +43,8 @@ exports.index = function(req, res) {
 				queryParam : JSON.stringify(doc.queryParam),
 				rptMode : doc.rptMode,
 				chartMode : doc.chartMode,
+				autoScale : JSON.stringify(doc.autoScale),
+				showLegend : JSON.stringify(doc.showLegend),
 				userEmail : req.session.user ? req.session.user.email : null,
 				username : req.session.user ? req.session.user.username : null
 			});

@@ -11,6 +11,8 @@ Ext.define('Datanium.GlobalStatic', {
 	label_hide_legend : 'Hide Legend Box',
 	label_unapply : 'Un-apply',
 	label_apply : 'Apply',
+	label_desc : 'Description',
+	label_no_desc : 'Not available.',
 	label_remove : 'Remove',
 	label_filter : 'Filter',
 	label_clean_filter : 'Clear Filter',
@@ -37,5 +39,6 @@ Ext.define('Datanium.GlobalStatic', {
 	label_to : 'To',
 	label_select : 'Select',
 	label_select_filter_limit : 'Sorry, you cannot select more than 10 filter values.',
-	label_select_mea_limit : 'Sorry, you cannot add more than 10 measures.'
+	label_select_mea_limit : 'Sorry, you cannot add more than 10 measures.',
+	label_row_col_convert : 'Row/Column Convertion'
 });
