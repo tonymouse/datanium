@@ -277,7 +277,7 @@ function generateMatchObj(queryParam) {
 	var filterArray = [];
 	dimensions.forEach(function(item, index) {
 		if (item.uniqueName in filters) {
-			if (item.uniqueName == 'year' || item.uniqueName == 'month') {
+			if (item.uniqueName == 'year' || item.uniqueName == 'month' || item.uniqueName == 'yearmonth') {
 				var timeObj = eval('filters.' + item.uniqueName);
 				var time_start = timeObj.time_start;
 				var time_end = timeObj.time_end;
@@ -292,12 +292,7 @@ function generateMatchObj(queryParam) {
 			} else {
 				var array = eval('filters.' + item.uniqueName);
 				if (array != null && array.length > 0) {
-					var str = '';
-					if (item.uniqueName == 'year') {
-						str = array.join(",");
-					} else {
-						str = "'" + array.join("','") + "'";
-					}
+					var str = "'" + array.join("','") + "'";
 					filterArray.push(item.uniqueName + ': {$in:[' + str + ']}');
 				}
 			}
@@ -310,19 +305,12 @@ function generateMatchObj(queryParam) {
 }
 
 function generateSortStr(dimensons) {
-	var sortStr = 'field -';
-	var timeFlag = false;
+	var sortStr = 'field';
 	if (dimensons != null && dimensons.length > 0) {
 		dimensons.forEach(function(item, index) {
-			if (item.uniqueName == 'year' || item.uniqueName == 'month') {
-				sortStr += item.uniqueName;
-				timeFlag = true;
-				return;
-			}
+			sortStr += ' -';
+			sortStr += item.uniqueName;
 		});
-		if (!timeFlag) {
-			sortStr += dimensons[0].uniqueName;
-		}
 		return sortStr;
 	} else {
 		return null;
@@ -337,12 +325,14 @@ function convertResult(doc, isChart) {
 			bubbleSort(results, 'year');
 		if (results.length > 0 && 'month' in results[0])
 			bubbleSort(results, 'month');
+		if (results.length > 0 && 'yearmonth' in results[0])
+			bubbleSort(results, 'yearmonth');
 		// auto filter out continous empty data
 		var removeIdxArray = [];
 		results.every(function(item, index) {
 			var emptyFlag = true;
 			for ( var propertyName in item) {
-				if (propertyName !== 'year' && propertyName !== 'month') {
+				if (propertyName !== 'year' && propertyName !== 'month' && propertyName !== 'yearmonth' ) {
 					if (item[propertyName] !== 0) {
 						emptyFlag = false;
 						break;
@@ -382,3 +372,80 @@ function convertSplitValue(str) {
 	var returnStr = str.trim().replace(/ |-|&|\(|\)|\,|\.|\'|\uFF08|\uFF09/g, '');
 	return returnStr;
 }
+
+exports.loadChart = function(req, res) {
+	var hashid = req.url.substr(3);
+	if (hashid === '') {
+		return null;
+	}
+	console.log(hashid);
+	reportSchema.findOne({
+		hashid : hashid
+	}, function(err, doc) {
+		if (err)
+			throw err;
+		if (doc === null) {
+			res.send('404 Sorry, no such page...');
+		} else {
+			if (doc.qubeInfo == null)
+				doc.qubeInfo = {
+					dimensions : [],
+					measures : []
+				};
+			if (doc.queryParam.filters == null)
+				doc.queryParam.filters = {};
+			if (doc.autoScale == null)
+				doc.autoScale = false;
+			if (doc.showLegend == null)
+				doc.showLegend = true;
+
+			var start = new Date().getTime();
+			var queryParam = doc.queryParam;
+			var chartMode = doc.chartMode;
+			var autoScale = doc.autoScale;
+			var resultJSON = {
+				"chart" : {
+					"result" : []
+				},
+				"queryParam" : queryParam,
+				"chartMode" : chartMode,
+				"autoScale" : autoScale
+			};
+
+			var matchObj = generateMatchObj(queryParam);
+			var groupObjProject = null;
+			var sortStr = null;
+			var groupObj4Chart = null;
+			if (queryParam.isSplit == 'true') {
+				var groupSplitJSON4Chart = generateGroupSplitObj(queryParam);
+				groupObjProject = groupSplitJSON4Chart.returnProject;
+				sortStr = groupSplitJSON4Chart.returnSort;
+				groupObj4Chart = groupSplitJSON4Chart.returnObj;
+
+			} else {
+				var group = generateGroupObj(queryParam, true);
+				groupObjProject = group.returnProject;
+				sortStr = group.returnSort;
+				groupObj4Chart = group.returnObj;
+			}
+
+			async.parallel([ function(callback) {
+				// query for chart
+				datasetSchema.aggregate().match(matchObj).group(groupObj4Chart).project(groupObjProject).sort(sortStr)
+						.limit(1000).exec(function(err, doc) {
+							if (err)
+								console.log('Exception: ' + err);
+							resultJSON.chart.result = convertResult(doc, true);
+							callback();
+						});
+			} ], function() {
+				var end = new Date().getTime();
+				var time = end - start;
+				console.log('Query execution time: ' + time + ' ms');
+				resultJSON.execute_time = time;
+				res.send(resultJSON);
+			});
+		}
+	});
+
+};

@@ -5,9 +5,6 @@ var UserSchema = user.User;
 var reportSchema = report.Report;
 var async = require('../lib/async');
 var hashids = require('../lib/hashids');
-var ejs = require('ejs');
-ejs.open = '$[';
-ejs.close = ']';
 
 exports.remove = function(req, res) {
 	console.log('report/remove');
@@ -37,14 +34,33 @@ exports.remove = function(req, res) {
 }
 
 exports.save = function(req, res) {
-	var userEmail = 'anonymous user';
-	if (req.session.user != null)
+	var userEmail = 'Anonymous User';
+	var userName = req.i18n.__('Anonymous User');
+	if (req.session.user != null) {
 		userEmail = req.session.user.email;
+		userName = req.session.user.username;
+	}
 	var reportObj = req.body;
 	var userip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 	var hashid = null;
 	var status = 'success';
+
+	var rptTitle = '';
+	if (reportObj.title != null && reportObj.title.length > 0) {
+		rptTitle = reportObj.title;
+	} else {
+		rptTitle = req.i18n.__('Untitled');
+	}
+	console.log(rptTitle);
+	var rptDesc = '';
+	if (reportObj.description != null && reportObj.description.length > 0) {
+		rptDesc = reportObj.description;
+	} else {
+		rptDesc = req.i18n.__('No description.');
+	}
+
 	var date = new Date();
+
 	async.parallel([ function(callback) {
 		if (reportObj.hashid !== null && reportObj.hashid !== '') {
 			console.log('Update Report ' + reportObj.hashid);
@@ -65,6 +81,10 @@ exports.save = function(req, res) {
 						chartMode : reportObj.chartMode,
 						autoScale : JSON.parse(reportObj.autoScale),
 						showLegend : JSON.parse(reportObj.showLegend),
+						enableQuery : JSON.parse(reportObj.enableQuery),
+						title : rptTitle,
+						description : rptDesc,
+						user_name : userName,
 						user_ip : userip,
 						modification_date : date
 					}, function(err, doc) {
@@ -92,6 +112,10 @@ exports.save = function(req, res) {
 				chartMode : reportObj.chartMode,
 				autoScale : JSON.parse(reportObj.autoScale),
 				showLegend : JSON.parse(reportObj.showLegend),
+				enableQuery : JSON.parse(reportObj.enableQuery),
+				title : rptTitle,
+				description : rptDesc,
+				user_name : userName,
 				user_id : userEmail,
 				user_ip : userip,
 				creation_date : date,
@@ -106,4 +130,30 @@ exports.save = function(req, res) {
 			status : status
 		});
 	});
+}
+
+exports.loadall = function(req, res) {
+	var query = require('url').parse(req.url, true).query;
+	if (query.start != null && query.start.length > 0) {
+		var start = parseInt(query.start);
+		console.log(start);
+		reportSchema.find({
+			"enableQuery" : true
+		}).select('-_id').sort({
+			'creation_date' : -1
+		}).skip(start).limit(start + 10).exec(function(err, reports) {
+			if (err)
+				console.log('Exception: ' + err);
+			else {
+				res.render('loadreports.ejs', {
+					currPage : 'reports',
+					hasHashKey : false,
+					host : req.protocol + '://' + req.get('host'),
+					userEmail : req.session.user ? req.session.user.email : null,
+					username : req.session.user ? req.session.user.username : null,
+					reports : reports
+				});
+			}
+		})
+	}
 }

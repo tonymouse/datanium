@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>$[=__('Homepage')] - Datanium - $[=__('Play with Data')]</title>
+<meta name="Description" content="$[=__('Datanium is a platform that helps you to find, present, share and play with data.')]" />
+<meta name="Keywords" content="$[=__('Public Data,Charts,Data Analysis,Finance,Economics,Historical')]"/>
+$[ include header ]
+$[ include header-home ]
+$[ include header-nav ]
+</head>
+
+<body>
+<!-- Navigation -->
+$[ include navbar ]
+
+<header class="marquee">
+    <div class="container">
+        <span class="brand-name">Datanium</span>
+        <h1>$[=__('A platform that helps you to find, present, share and play with data.')]</h1>
+        <p>$[=__('Fork us on')]
+        	<a href="https://github.com/datanium/datanium">Github</a> $[=__('or contact us directly')] - 
+        	<a href="mailto:admin@dtnium.com">dtnium@gmail.com</a>
+        </p>
+        <a href="/r" class="btn btn-default btn-cta"><i class="fa fa-chevron-circle-right"></i>  $[=__('Try it Out')]</a>
+    </div>
+</header>
+
+<!-- Page Content -->
+<div class="container">
+    <div class="row home-intro text-center">
+        <div class="col-lg-12">
+            <h2 class="tagline">$[=__('Free data, quick analysis, and easy to use.')]</h2>
+            <p class="lead">$[=__('All the fun you could have here by discovering stories in data.')]</p>
+            <hr class="small">
+        </div>
+    </div>
+    <div class="row previews">
+    
+        $[reports.forEach(function(report){ ]
+        <div class="col-lg-4 col-sm-6">
+            <div class="thumbnail">
+                <a href="/r/$[=report.hashid]" class="post-image-link">
+                    <p>
+                    <div id="rptThumbnail_$[=report.hashid]" class="rptThumbnail"></div>
+                    </p>
+                </a>
+                <div class="caption">
+                    <h4>$[=report.title]</h4>
+                    <p>$[=__('Created by')] $[=report.user_name]&nbsp; $[=__('on')] $[=: report.creation_date | dateformat:'YYYY-MM-DD']</p>
+                    <a href="/r/$[=report.hashid]" class="btn btn-default" title="$[=report.title]" >$[=__('Preview & Edit')]</a>
+                </div>
+            </div>
+        </div>
+        <script>
+	        $[if(report.enableQuery){]
+		        $[report.creation_date = null]
+		        $[report.modification_date = null]
+		        reports.push('$[=report.hashid]');
+	        $[}]
+        </script>
+        $[ }); ]
+        
+    </div>
+    <div class="text-center btn-home">
+        <a href="/reports" class="btn btn-outline">$[=__('View All Reports')]</a>
+    </div>
+    
+</div>
+
+
+<!-- Footer -->
+<div class="cta-mail">
+    <div class="container text-center">
+        <h2>$[=__('Want more Data & Reports?')]</h2>
+        <h4>$[=__('Try to key in the keywords to search')]</h4>
+        <div id="mc_embed_signup">
+                <div class="input-group input-group-lg">
+                    <input type="text" class="form-control" id="home-search" placeholder="$[=__('Eg. GDP, Consumer Price, Interest Rate.')]">
+                    <span class="input-group-btn">
+                        <button type="submit" id="home-search-btn" class="btn btn-default">$[=__('Search')]</button>
+                    </span>
+                </div>
+        </div>
+    </div>
+</div>
+
+$[ include foot ]
+$[ include common ]
+	<script type="text/javascript">
+		var loginUserEmail = null;
+		var loginUsername = null;
+		$[if(userEmail!=null){]
+			loginUserEmail = '$[=userEmail]';
+			loginUsername = '$[=username]';
+		$[}]
+	</script>
+$[ include foot-google ]
+</body>
+
+</html>

@@ -2,16 +2,18 @@ var mongodb = require('../data/mongodb');
 var report = require('../data/report');
 var reportSchema = report.Report;
 
-exports.index = function(req, res) {
-	console.log('user/index: ' + req.session.user);
-	var hashid = req.url.substr(1);
+exports.report = function(req, res) {
+	console.log('user/report: ' + req.session.user);
+	var hashid = req.url.substr(3);
 	if (hashid === '') {
-		res.render('index.ejs', {
+		res.render('report.ejs', {
 			currPage : 'editor',
 			hasHashKey : false,
 			host : req.protocol + '://' + req.get('host'),
 			userEmail : req.session.user ? req.session.user.email : null,
-			username : req.session.user ? req.session.user.username : null
+			username : req.session.user ? req.session.user.username : null,
+			title : '',
+			description : ''
 		});
 		return;
 	}
@@ -34,7 +36,7 @@ exports.index = function(req, res) {
 				doc.autoScale = false;
 			if (doc.showLegend == null)
 				doc.showLegend = true;
-			res.render('index.ejs', {
+			res.render('report.ejs', {
 				currPage : 'editor',
 				hasHashKey : true,
 				host : req.protocol + '://' + req.get('host'),
@@ -45,11 +47,58 @@ exports.index = function(req, res) {
 				chartMode : doc.chartMode,
 				autoScale : JSON.stringify(doc.autoScale),
 				showLegend : JSON.stringify(doc.showLegend),
+				title : doc.title != null ? doc.title : '',
+				user_name : doc.user_name != null ? doc.user_name : '',
+				creation_date : doc.creation_date,
+				modification_date : doc.modification_date,
+				description : doc.description != null ? doc.description : '',
 				userEmail : req.session.user ? req.session.user.email : null,
 				username : req.session.user ? req.session.user.username : null
 			});
 		}
 	});
+};
+
+exports.newIndex = function(req, res) {
+	reportSchema.find({
+		"enableQuery" : true
+	}).select('-_id').sort({
+		'creation_date' : -1
+	}).limit(6).exec(function(err, reports) {
+		if (err)
+			console.log('Exception: ' + err);
+		else {
+			res.render('newIndex.ejs', {
+				currPage : 'home',
+				hasHashKey : false,
+				host : req.protocol + '://' + req.get('host'),
+				userEmail : req.session.user ? req.session.user.email : null,
+				username : req.session.user ? req.session.user.username : null,
+				reports : reports
+			});
+		}
+	})
+};
+
+exports.allReports = function(req, res) {
+	reportSchema.find({
+		"enableQuery" : true
+	}).select('-_id').sort({
+		'creation_date' : -1
+	}).limit(10).exec(function(err, reports) {
+		if (err)
+			console.log('Exception: ' + err);
+		else {
+			res.render('allreports.ejs', {
+				currPage : 'reports',
+				hasHashKey : false,
+				host : req.protocol + '://' + req.get('host'),
+				userEmail : req.session.user ? req.session.user.email : null,
+				username : req.session.user ? req.session.user.username : null,
+				reports : reports
+			});
+		}
+	})
 };
 
 exports.helloworld = function(req, res) {

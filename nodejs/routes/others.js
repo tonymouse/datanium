@@ -4,9 +4,10 @@ var dataset = require('../data/dataset');
 var FeedbackSchema = feedback.Feedback;
 var datasetSchema = dataset.Dataset;
 var async = require('../lib/async');
+var pinyinsort = require('../lib/pinyinsort');
 
 exports.feedbacksave = function(req, res) {
-	var userEmail = 'anonymous user';
+	var userEmail = 'Anonymous User';
 	if (req.session.user != null)
 		userEmail = req.session.user.email;
 	var content = req.body.feedbackContent;
@@ -51,6 +52,7 @@ exports.dimensionValueSearch = function(req, res) {
 	if (query.dim != null) {
 		var key = query.dim.toLowerCase();
 		var results = [];
+
 		// exclude blank record
 		var matchStr = '{ ' + key + ' : { $ne : \'\' } }';
 		var matchObj = eval("(" + matchStr + ")");
@@ -67,9 +69,18 @@ exports.dimensionValueSearch = function(req, res) {
 					results.push(tempJson);
 				}
 			});
+
+			// sort by pinyin
+			if (results.length > 0 && typeof (results[0]['name']) === 'string') {
+				results.sort(function(a, b) {
+					return a['name'].localeCompare(b['name']);
+				});
+			}
+
 			dimensionValueResultJSON = {
 				"dimensionValues" : results
 			};
+
 			// put send here cause callback func is async
 			var end = new Date().getTime();
 			var time = end - start;

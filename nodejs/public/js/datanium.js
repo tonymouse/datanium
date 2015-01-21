@@ -17,9 +17,9 @@ $(document).ready(function() {
 
 	// load i18n script for extjs
 	var locale = read_cookie('locale');
-	if (locale != null) {
+	if (locale != null && locale != 'null') {
 		$.getScript(host + "/js/extjs/locale/ext-lang-" + locale + ".js", function(data, textStatus, jqxhr) {
-			console.log('extjs default locale script is loaded: ' + locale);
+			// console.log('extjs default locale script is loaded: ' + locale);
 		});
 		$.getScript(host + "/js/extjs/locale/ext-lang-" + locale + "-custom.js", function(data, textStatus, jqxhr) {
 			console.log('extjs custom locale script is loaded: ' + locale);
@@ -357,6 +357,14 @@ var space = function() {
 	}
 }
 
+var settings = function() {
+	if (loginUsername != null && loginUsername != '') {
+		window.location.href = '/user/settings/';
+	} else {
+		loginpop();
+	}
+}
+
 var about = function() {
 	$('#aboutModal').modal('show');
 }
@@ -444,6 +452,7 @@ var removeRpt = function(rptId) {
 }
 
 var save = function(isNew) {
+	Datanium.GlobalData.title = $('#rptTitle').val();
 	$('#saveConfirmModal').modal('hide');
 	var url = '/report/save';
 	$.ajax({
@@ -456,11 +465,18 @@ var save = function(isNew) {
 			rptMode : Datanium.GlobalData.rptMode,
 			chartMode : Datanium.GlobalData.chartMode,
 			autoScale : Datanium.GlobalData.autoScale,
-			showLegend : Datanium.GlobalData.showLegend
+			showLegend : Datanium.GlobalData.showLegend,
+			title : Datanium.GlobalData.title,
+			description : Datanium.GlobalData.description,
+			enableQuery : Datanium.GlobalData.enableQuery
 		},
 		success : function(data) {
 			if (Datanium.GlobalData.hashid === null || Datanium.GlobalData.hashid === '' || isNew)
-				window.location.href = window.location.protocol + "//" + window.location.host + '/' + data.hashid;
+				setTimeout(
+						function() {
+							window.location.href = window.location.protocol + "//" + window.location.host + '/r/'
+									+ data.hashid;
+						}, 500);
 			else if (data.status === 'userid_not_match')
 				saveAnother();
 			else
@@ -528,4 +544,106 @@ var changeLang = function(lang) {
 
 var read_cookie = function(k, r) {
 	return (r = RegExp('(^|; )' + encodeURIComponent(k) + '=([^;]*)').exec(document.cookie)) ? r[2] : null;
+}
+
+var userTour = function() {
+	document.cookie = "tour=true";
+	window.location.href = "/r";
+}
+
+var viewmoreRpt = function() {
+	$('#viewmoreRptBtn').text(msg_loading);
+	var link = '/report/loadall?start=' + rptTotalCount;
+	var d = document.createElement('div');
+	$(d).load(link).appendTo($('#rpt_rows'));
+	$('#viewmoreRptBtn').text(msg_viewmore_rpt);
+	rptTotalCount += 10;
+}
+
+var validateSettings = function() {
+	var username = $('#set-username').val();
+	var password = $('#set-pass').val();
+	var newPassword = $('#set-newpass').val();
+	var confirmPassword = $('#set-confpass').val();
+	var count = 0;
+	if ((username == null || username == '') && (newPassword == null || newPassword == '')) {
+		count++;
+	}
+	if (username == loginUsername) {
+		count++;
+	}
+	if (password == null || password == '') {
+		$('#set-pass-error').show();
+		count++;
+	} else {
+		$('#set-pass-error').hide();
+	}
+	if (newPassword != null && newPassword != '' && newPassword.length < 6) {
+		$('#set-newpass-error').show();
+		count++;
+	} else {
+		$('#set-newpass-error').hide();
+	}
+	if (newPassword != null && newPassword != '' && confirmPassword != null && confirmPassword != ''
+			&& newPassword != confirmPassword) {
+		$('#set-confpass-error').show();
+		count++;
+	} else {
+		$('#set-confpass-error').hide();
+	}
+	if (count > 0) {
+		return false;
+	}
+	return true;
+}
+
+var saveSettings = function() {
+	if (!validateSettings())
+		return false;
+	var link = '/user/saveSettings';
+	$.ajax({
+		url : link,
+		type : 'POST',
+		dataType : 'json',
+		data : {
+			username : $('#set-username').val(),
+			password : $('#set-pass').val(),
+			newpassword : $('#set-newpass').val(),
+			conpassword : $('#set-confpass').val()
+		},
+		success : function(map) {
+			if (map.status == 'modify_success') {
+				window.location.reload();
+			} else {
+				if (map.status == 'password_not_match') {
+					$('#set-pass-error').show();
+				} else {
+					$('#set-pass-error').hide();
+				}
+				if (map.status == 'username_exists') {
+					$('#set-username-error').show();
+				} else {
+					$('#set-username-error').hide();
+				}
+			}
+
+		},
+		error : function() {
+			console.log(error);
+		}
+	});
+}
+
+var showIndicatorDetail = function(indicatorKey) {
+	$.ajax({
+		url : '/indicator/load?key=' + indicatorKey,
+		type : 'get',
+		dataType : 'json',
+		success : function(returnObj) {
+			showTxtModal(returnObj.text + ' - ' + returnObj.dataSource, returnObj.sourceNote);
+		},
+		error : function() {
+			console.log('load indicator error...');
+		}
+	});
 }

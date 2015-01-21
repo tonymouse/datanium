@@ -4,9 +4,10 @@ body {
 	
 }
 
-.x-body {
-	color: #34495e;
-	background: #34495e;
+.index-container {
+	color: #3F5878;
+	background: #3F5878;
+	background-image: url(/js/startbootstrap/img/bg.png)
 }
 
 .leftpanel .x-box-inner {
@@ -219,7 +220,7 @@ legend {
 	font-weight: bold;
 }
 
-.index-container #user_space {
+#user_space {
 	padding-top: 30px;
 }
 
@@ -236,7 +237,12 @@ legend {
 }
 
 .user_space_reports {
-	line-height: 10px;
+	line-height: 12px;
+	min-height: 120px;
+}
+
+.user_space_reports button {
+	margin-bottom: 4px;
 }
 
 .x-toolbar {
@@ -258,13 +264,13 @@ legend {
 }
 
 .index-container>header a {
-	color: #566473;
+	color: #74818e;
 	text-decoration: none;
 	outline: none;
 }
 
 .index-container>header a:hover {
-	color: #4f7bab;
+	color: #6490C0;
 }
 
 .index-container>header h1 {
@@ -277,7 +283,7 @@ legend {
 .index-container>header span {
 	display: block;
 	font-size: 55%;
-	color: #74818e;
+	color: #95A2AF;
 	padding: 0 0 5px 1px;
 }
 
@@ -302,14 +308,72 @@ legend {
 	
 }
 
-.index-container #release_note_div {
+#release_note_div {
 	padding-top: 30px;
 }
 
 .x-hmenu-unlock .x-menu-item-icon {
-  background-image: url(/img/lock_open.png);
+	background-image: url(/img/lock_open.png);
 }
 
 .x-hmenu-lock .x-menu-item-icon {
-  background-image: url(/img/lock.png);
+	background-image: url(/img/lock.png);
+}
+
+.rptThumbnail div {
+	margin: 0 auto;
+}
+
+.rptThumbnail {
+	border: 1px solid #ddd;
+}
+
+#all_reports {
+	padding-top: 30px;
+}
+
+.dtm-header {
+	color: #fff;
+	background-color: #3F5878;
+	background-image: url(/js/startbootstrap/img/bg.png);
+	padding: 30px 0;
+	margin-top: 50px
+}
+
+.dtm-header h2 {
+	margin-top: 0
+}
+
+.dtm-header .input-group {
+	max-width: 500px;
+	margin-top: 20px
+}
+
+.dtm-jumbotron {
+	text-align: left;
+	background-image: url(/js/startbootstrap/img/premium-bg.png);
+	margin-bottom: 15px;
+	padding: 18px 25px !important;
+	overflow: hidden;
+}
+
+.thumbleft {
+	width: 355x;
+	float: left;
+}
+
+.thumbright {
+	overflow: hidden;
+	padding: 0px 30px;
+}
+
+.settings-item {
+	border-bottom: 1px dotted #f2f2f2;
+	padding-bottom: 15px;
+	width: 100%;
+}
+
+.validate-error {
+	display: none;
+	color: #c33;
 }

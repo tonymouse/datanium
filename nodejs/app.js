@@ -3,6 +3,17 @@ var http = require('http');
 var path = require('path');
 var routes = require('./routes');
 var cache = require('./utils/cacheUtil');
+var moment = require('moment');
+var ejs = require('ejs');
+ejs.open = '$[';
+ejs.close = ']';
+ejs.filters.dateformat = function(obj, format) {
+	if (format == undefined) {
+		format = 'YYYY-MM-DD HH:mm:ss';
+	}
+	var ret = moment(obj).format(format);
+	return ret == 'Invalid date' ? '0000-00-00' : ret;
+};
 
 // routes config
 var data = require('./routes/dataController');
@@ -60,24 +71,31 @@ var nocache = function(req, res, next) {
 // init server cache
 // cache.init();
 
-app.get('/', routes.index);
+app.get('/', routes.newIndex);
+app.get('/reports', routes.allReports);
+app.get('/r', routes.report);
 app.get('/dimension/search', others.dimensionValueSearch);
 app.get('/indicator/search', indicator.searchIndicator);
 app.get('/indicator/map', indicator.indicatorMapping);
 app.get('/indicator/topicSearch', indicator.topicSearch);
 app.get('/indicator/countrySearch', indicator.countrySearch);
 app.get('/indicator/countryLoad', indicator.countryLoad);
+app.get('/indicator/load', indicator.loadIndicator);
 app.post('/data/result', data.queryResult);
 app.post('/data/split', data.querySplit);
+app.get('/c/:hashid', data.loadChart);
 app.post('/signup', user.saveUser);
 app.post('/login', user.login);
 app.get('/signout', nocache, user.signout);
 app.get('/user/space', nocache, user.space);
+app.get('/user/settings', nocache, user.settings);
+app.post('/user/saveSettings', user.saveSettings);
 app.post('/report/save', report.save);
-app.get('/report/remove/:rptId', report.remove)
+app.get('/report/remove/:rptId', report.remove);
+app.get('/report/loadall', report.loadall);
 app.post('/feedback/save', others.feedbacksave);
 app.get('/release_notes', others.release_notes);
-app.get('/:hashid', routes.index);
+app.get('/r/:hashid', routes.report);
 
 http.createServer(app).listen(app.get('port'), function() {
 	console.log('Express server listening on port ' + app.get('port'));
