@@ -19,8 +19,11 @@ ejs.filters.dateformat = function(obj, format) {
 var data = require('./routes/dataController');
 var user = require('./routes/userController');
 var indicator = require('./routes/indicatorController');
+var search = require('./routes/searchController');
 var report = require('./routes/reportController');
 var others = require('./routes/others');
+// stockholm
+var stock = require('./routes/stockController');
 
 var app = express();
 
@@ -74,6 +77,7 @@ var nocache = function(req, res, next) {
 app.get('/', routes.newIndex);
 app.get('/reports', routes.allReports);
 app.get('/r', routes.report);
+app.get('/search', search.searchEntry);
 app.get('/dimension/search', others.dimensionValueSearch);
 app.get('/indicator/search', indicator.searchIndicator);
 app.get('/indicator/map', indicator.indicatorMapping);
@@ -96,6 +100,10 @@ app.get('/report/loadall', report.loadall);
 app.post('/feedback/save', others.feedbacksave);
 app.get('/release_notes', others.release_notes);
 app.get('/r/:hashid', routes.report);
+// stockholm
+app.get('/stockholm', stock.stockholm);
+app.get('/stockholm/load', stock.loadData);
+app.get('/stockholm/dates', stock.loadDates);
 
 http.createServer(app).listen(app.get('port'), function() {
 	console.log('Express server listening on port ' + app.get('port'));
